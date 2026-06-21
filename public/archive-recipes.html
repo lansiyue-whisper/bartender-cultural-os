@@ -1,0 +1,1164 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>调酒师第二大脑</title>
+    <style>
+      * { box-sizing: border-box; }
+      html, body { min-height: 100%; }
+      body {
+        margin: 0;
+        color: #f3efe7;
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background:
+          radial-gradient(circle at 18% 8%, rgba(218,178,99,.18), transparent 24rem),
+          radial-gradient(circle at 86% 18%, rgba(41,151,142,.14), transparent 26rem),
+          linear-gradient(100deg, rgba(122,35,49,.12), transparent 34%, rgba(218,178,99,.08) 68%, transparent),
+          repeating-linear-gradient(90deg, rgba(255,255,255,.028) 0 1px, transparent 1px 78px),
+          linear-gradient(135deg, #080908 0%, #111412 42%, #17110f 100%);
+        overflow-x: hidden;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background: linear-gradient(105deg, transparent 0 38%, rgba(0,47,167,.32) 47%, rgba(41,151,142,.08) 51%, transparent 60% 100%);
+        transform: translateX(-120%);
+        animation: scanLight 5.2s ease-in-out infinite;
+        z-index: 0;
+      }
+      button, input { font: inherit; }
+      .app-shell { position: relative; z-index: 1; width: min(1180px, calc(100% - 32px)); margin: 0 auto; padding: 28px 0 44px; }
+      .top-bar { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 360px); gap: 20px; align-items: center; }
+      .brand-lockup { display: flex; align-items: center; gap: 16px; min-width: 0; }
+      .brand-mark {
+        width: 54px; height: 54px; display: grid; place-items: center; border: 1px solid rgba(0,47,167,.88);
+        border-radius: 8px; background: linear-gradient(145deg, rgba(0,47,167,.48), rgba(41,151,142,.1)); color: #8fb2ff; font-size: 27px; flex: 0 0 auto;
+        box-shadow: inset 0 0 24px rgba(0,47,167,.46), 0 0 28px rgba(0,47,167,.32);
+        animation: markPulse 2.2s ease-in-out infinite;
+      }
+      h1 { margin: 0 0 4px; font-size: clamp(26px, 4vw, 42px); line-height: 1.1; }
+      .muted { color: #a9b1ad; }
+      .stat-strip { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; padding: 14px; border: 1px solid #29312d; border-radius: 8px; background: rgba(17,23,21,.78); }
+      .stat { position: relative; overflow: hidden; }
+      .stat::after { content: ""; display: block; height: 4px; margin-top: 9px; border-radius: 99px; background: linear-gradient(90deg, #002fa7, #2f7dff, #29978e); transform-origin: left; animation: meter 1.9s ease-in-out infinite; }
+      .stat strong { display: block; font-size: 24px; color: #8fb2ff; }
+      .stat span { color: #a9b1ad; font-size: 13px; }
+      .search-panel { margin-top: 28px; }
+      .search-box {
+        display: flex; flex-wrap: wrap; gap: 8px; align-items: center; min-height: 56px; padding: 8px 12px;
+        border: 1px solid #3a443f; border-radius: 8px; background: rgba(14,18,17,.9); box-shadow: 0 12px 32px rgba(0,0,0,.18);
+      }
+      .selected-pill {
+        display: inline-flex; align-items: center; gap: 6px; min-height: 30px; padding: 4px 10px;
+        border: 1px solid rgba(0,47,167,.72); border-radius: 8px; color: #8fb2ff; background: rgba(0,47,167,.18);
+      }
+      .selected-pill button { border: 0; color: inherit; background: transparent; cursor: pointer; padding: 0 0 0 2px; }
+      #ingredientInput { min-width: 220px; flex: 1; border: 0; outline: 0; color: #f3efe7; background: transparent; }
+      .suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+      .suggestion {
+        min-height: 32px; padding: 5px 10px; border: 1px solid #37413c; border-radius: 8px;
+        color: #d9d1c4; background: #111715; cursor: pointer;
+      }
+      .suggestion:hover { border-color: #2f7dff; color: #8fb2ff; transform: translateY(-1px); }
+      .filter-bar { display: grid; grid-template-columns: 1.5fr repeat(3, minmax(150px, 1fr)) 120px; gap: 10px; margin-top: 14px; }
+      .filter-bar input, .filter-bar select {
+        width: 100%; min-height: 40px; border: 1px solid #37413c; border-radius: 8px; padding: 0 12px;
+        color: #f3efe7; background: #111715; outline: 0;
+      }
+      .random-button {
+        min-height: 40px; border: 1px solid rgba(0,47,167,.84); border-radius: 8px; color: #d7e4ff;
+        background: linear-gradient(135deg, rgba(0,47,167,.46), rgba(41,151,142,.11)); cursor: pointer;
+        box-shadow: 0 0 20px rgba(0,47,167,.22);
+        animation: randomGlow 2.4s ease-in-out infinite;
+      }
+      .random-button:hover { background: rgba(0,47,167,.58); transform: translateY(-1px); }
+      .filter-bar input:focus, .filter-bar select:focus { border-color: #2f7dff; box-shadow: 0 0 0 3px rgba(0,47,167,.18); }
+      .result-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin: 28px 0 16px; }
+      .result-head.flash .count-badge { animation: countPop .34s ease; }
+      .count-badge { min-width: 24px; padding: 2px 8px; border-radius: 999px; color: #f5f8ff; background: #002fa7; font-weight: 700; box-shadow: 0 0 22px rgba(0,47,167,.46); }
+      .recipe-grid { columns: 3 270px; column-gap: 16px; }
+      .recipe-card {
+        display: inline-block; width: 100%; margin: 0 0 16px; padding: 18px; break-inside: avoid; cursor: pointer;
+        border: 1px solid rgba(66,78,73,.86); border-radius: 8px; background: linear-gradient(180deg, rgba(25,31,29,.98), rgba(17,20,19,.98)); transition: border-color .16s, transform .16s, background .16s, box-shadow .16s;
+        animation: cardIn .52s cubic-bezier(.2,.8,.2,1) both;
+        animation-delay: calc(var(--i, 0) * 34ms);
+      }
+      .recipe-card:hover { transform: translateY(-6px) scale(1.012); border-color: rgba(47,125,255,.78); background: linear-gradient(180deg, #18223b, #14191f); box-shadow: 0 20px 38px rgba(0,0,0,.34), 0 0 30px rgba(0,47,167,.26); }
+      .card-topline { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+      .tag { display: inline-flex; align-items: center; min-height: 24px; padding: 2px 8px; border-radius: 6px; font-size: 12px; border: 1px solid #37413c; color: #d9d1c4; background: #111715; }
+      .tag.classic { color: #8fb2ff; border-color: rgba(0,47,167,.68); background: rgba(0,47,167,.18); }
+      .tag.custom { color: #8fd4cd; border-color: rgba(41,151,142,.55); background: rgba(41,151,142,.12); }
+      .recipe-card h3 { margin: 14px 0; font-size: 22px; }
+      .english-name { display: block; margin-top: 4px; color: #8fd4cd; font-size: 13px; font-weight: 500; letter-spacing: 0; }
+      .card-meta { display: flex; flex-wrap: wrap; gap: 8px; margin: -4px 0 14px; color: #a9b1ad; font-size: 13px; }
+      .tag-row, .flavor-row { display: flex; flex-wrap: wrap; gap: 8px; }
+      .tag-row { margin-bottom: 16px; }
+      .base-tag { border-color: rgba(41,151,142,.55); color: #8fd4cd; background: rgba(41,151,142,.11); }
+      .flavor-row span { min-height: 28px; display: inline-flex; align-items: center; padding: 4px 10px; border: 1px solid #37413c; border-radius: 8px; color: #d9d1c4; background: #111715; }
+      .empty { padding: 70px 0; text-align: center; color: #a9b1ad; }
+      .drawer-mask { position: fixed; inset: 0; display: none; background: rgba(0,0,0,.52); z-index: 20; }
+      .drawer-mask.open { display: block; }
+      .drawer {
+        position: fixed; top: 0; right: 0; width: min(460px, 100vw); height: 100%; padding: 22px;
+        border-left: 1px solid #2c3430; background: #131817; box-shadow: -20px 0 40px rgba(0,0,0,.28);
+        transform: translateX(100%); transition: transform .18s ease; overflow: auto; z-index: 21;
+      }
+      .drawer.open { transform: translateX(0); }
+      .drawer-head { display: flex; justify-content: space-between; gap: 12px; align-items: center; margin-bottom: 18px; }
+      .drawer h2 { margin: 0; font-size: 26px; }
+      .close-button { width: 34px; height: 34px; border: 1px solid #3a443f; border-radius: 8px; color: #f3efe7; background: #171d1b; cursor: pointer; }
+      .drawer-section { margin-top: 28px; }
+      .drawer-section h4 { margin: 0 0 12px; font-size: 17px; }
+      .info-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+      .info-tile { padding: 12px; border: 1px solid #2c3430; border-radius: 8px; background: #171d1b; }
+      .info-tile span { display: block; margin-bottom: 4px; color: #a9b1ad; font-size: 12px; }
+      .source-link { color: #8fb2ff; text-decoration: none; }
+      .recipe-table { overflow: hidden; border: 1px solid #2c3430; border-radius: 8px; }
+      .recipe-row { display: flex; justify-content: space-between; gap: 16px; padding: 12px 14px; border-bottom: 1px solid #2c3430; background: #171d1b; }
+      .recipe-row:last-child { border-bottom: 0; }
+      .steps { margin: 0; padding-left: 22px; color: #d9d1c4; }
+      .steps li { margin: 0 0 12px; }
+      .culture-hero {
+        position: relative; z-index: 1; min-height: 100svh; display: grid; place-items: center; overflow: hidden;
+        isolation: isolate; padding: 32px; background: #050608;
+      }
+      .hero-backdrop, .hero-backdrop::before, .hero-backdrop::after { position: absolute; inset: 0; content: ""; z-index: -2; }
+      .hero-backdrop {
+        background:
+          radial-gradient(circle at 16% 22%, rgba(0,47,167,.72), transparent 19rem),
+          radial-gradient(circle at 76% 28%, rgba(41,151,142,.18), transparent 22rem),
+          linear-gradient(135deg, #050608, #0a1022 52%, #050608);
+        animation: ambientDrift 14s ease-in-out infinite alternate;
+      }
+      .hero-backdrop::before {
+        opacity: .68;
+        background:
+          radial-gradient(ellipse at 18% 82%, rgba(255,255,255,.16), transparent 8rem),
+          radial-gradient(circle at 68% 78%, rgba(130,160,255,.2), transparent 5rem),
+          repeating-linear-gradient(115deg, transparent 0 18px, rgba(255,255,255,.035) 19px 20px);
+        animation: textureCycle 12s steps(7) infinite;
+      }
+      .hero-backdrop::after {
+        background: linear-gradient(90deg, transparent, rgba(0,47,167,.34), transparent);
+        transform: translateX(-120%) skewX(-12deg);
+        animation: heroScan 4.8s ease-in-out infinite;
+      }
+      .hero-title {
+        max-width: 1180px; margin: 0; font-size: clamp(48px, 10vw, 148px); line-height: .9;
+        font-weight: 760; letter-spacing: 0; color: #f5f8ff; text-wrap: balance;
+        text-shadow: 0 0 38px rgba(0,47,167,.58);
+      }
+      .hero-subline { position: absolute; left: 32px; bottom: 32px; color: #8fb2ff; letter-spacing: .04em; text-transform: uppercase; }
+      .scroll-cue { position: absolute; right: 32px; bottom: 32px; color: #a9b1ad; animation: cuePulse 1.8s ease-in-out infinite; }
+      .culture-section {
+        position: relative; margin: 30px 0; padding: 28px; border: 1px solid rgba(47,125,255,.22);
+        border-radius: 8px; background: rgba(8,12,18,.72); box-shadow: 0 24px 60px rgba(0,0,0,.22);
+      }
+      .section-kicker { margin-bottom: 8px; color: #8fb2ff; font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+      .culture-section h2 { margin: 0 0 20px; font-size: clamp(28px, 5vw, 64px); line-height: .95; }
+      .split-layout { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(300px, .9fr); gap: 18px; align-items: start; }
+      .flavor-map, .genome-space, .atlas-grid, .season-grid, .feed-grid { display: grid; gap: 12px; }
+      .flavor-map { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+      .flavor-node, .genome-node, .atlas-card, .season-card, .feed-card, .note-card {
+        border: 1px solid rgba(66,78,73,.86); border-radius: 8px; background: linear-gradient(180deg, rgba(18,24,34,.92), rgba(12,15,18,.96));
+      }
+      .flavor-node, .genome-node {
+        min-height: 92px; color: #f5f8ff; cursor: pointer; text-align: left; padding: 14px;
+        transition: transform .18s, border-color .18s, box-shadow .18s;
+      }
+      .flavor-node:hover, .genome-node:hover { transform: translateY(-5px); border-color: rgba(47,125,255,.78); box-shadow: 0 0 30px rgba(0,47,167,.22); }
+      .flavor-node strong, .genome-node strong { display: block; font-size: 20px; margin-bottom: 8px; }
+      .map-output, .genome-output {
+        min-height: 260px; padding: 18px; border: 1px solid rgba(47,125,255,.26); border-radius: 8px;
+        background: radial-gradient(circle at top right, rgba(0,47,167,.2), transparent 15rem), rgba(5,8,12,.8);
+      }
+      .mini-list { display: grid; gap: 10px; margin-top: 14px; }
+      .mini-item { padding: 12px; border: 1px solid #2c3430; border-radius: 8px; background: rgba(17,23,21,.8); cursor: pointer; }
+      .connection-lines { position: relative; min-height: 330px; overflow: hidden; }
+      .connection-lines::before {
+        content: ""; position: absolute; inset: 28px; border: 1px solid rgba(47,125,255,.18); border-radius: 50%;
+        box-shadow: 0 0 80px rgba(0,47,167,.18); animation: orbitGlow 7s linear infinite;
+      }
+      .genome-node { position: relative; z-index: 1; margin: 10px; display: inline-block; width: min(220px, calc(50% - 24px)); vertical-align: top; }
+      .atlas-grid { grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+      .atlas-card, .season-card, .feed-card, .note-card { padding: 16px; }
+      .atlas-card h3, .season-card h3, .feed-card h3 { margin: 0 0 10px; color: #f5f8ff; }
+      .wheel { height: 7px; border-radius: 99px; margin: 14px 0; background: linear-gradient(90deg, #002fa7, #29978e, #8fb2ff, #0e1014); }
+      .notes-board { display: grid; grid-template-columns: minmax(260px, .8fr) minmax(0, 1.2fr); gap: 14px; }
+      .note-form { display: grid; gap: 10px; }
+      .note-form input, .note-form textarea, .note-form select {
+        width: 100%; border: 1px solid #37413c; border-radius: 8px; padding: 10px 12px; color: #f3efe7; background: #111715;
+      }
+      .note-form textarea { min-height: 110px; resize: vertical; }
+      .season-grid { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+      .feed-grid { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+      .feed-card { min-height: 150px; display: flex; flex-direction: column; justify-content: space-between; background:
+        linear-gradient(135deg, rgba(0,47,167,.22), transparent), rgba(10,13,16,.94);
+      }
+      .archive-label { margin-top: 42px; padding-top: 28px; border-top: 1px solid rgba(47,125,255,.22); }
+      /* Experimental culture / archive redesign layer */
+      body {
+        background:
+          linear-gradient(180deg, rgba(0,47,167,.08), transparent 36rem),
+          repeating-linear-gradient(0deg, rgba(255,255,255,.028) 0 1px, transparent 1px 96px),
+          #030405;
+      }
+      .culture-hero {
+        align-items: end; justify-items: start; padding: clamp(24px, 5vw, 72px);
+        background: #030405;
+      }
+      .hero-backdrop {
+        background:
+          radial-gradient(circle at 78% 18%, rgba(0,47,167,.78), transparent 18rem),
+          radial-gradient(ellipse at 22% 72%, rgba(255,255,255,.18), transparent 11rem),
+          linear-gradient(145deg, #020304 0%, #050815 54%, #030405 100%);
+      }
+      .hero-backdrop::before {
+        opacity: .88;
+        background:
+          linear-gradient(120deg, transparent 0 20%, rgba(0,47,167,.18) 22% 24%, transparent 28% 100%),
+          radial-gradient(circle at 60% 65%, rgba(255,255,255,.2), transparent 3rem),
+          repeating-linear-gradient(90deg, transparent 0 38px, rgba(255,255,255,.04) 39px 40px);
+        mix-blend-mode: screen;
+      }
+      .hero-title {
+        width: min(1280px, 100%); font-family: ui-serif, Georgia, "Times New Roman", serif;
+        font-size: clamp(64px, 14vw, 210px); font-weight: 500; line-height: .78;
+        letter-spacing: 0; margin-bottom: 8svh;
+      }
+      .hero-subline {
+        top: clamp(20px, 4vw, 52px); bottom: auto; left: clamp(20px, 4vw, 52px);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px;
+      }
+      .scroll-cue {
+        left: clamp(20px, 4vw, 52px); right: auto; bottom: clamp(20px, 4vw, 52px);
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: uppercase;
+      }
+      .app-shell { width: min(1440px, calc(100% - 48px)); padding-top: 72px; }
+      .culture-section {
+        min-height: 86svh; display: grid; grid-template-columns: minmax(280px, .72fr) minmax(0, 1fr);
+        gap: clamp(24px, 6vw, 96px); align-items: center; margin: 0; padding: clamp(36px, 7vw, 104px) 0;
+        border: 0; border-radius: 0; background: transparent; box-shadow: none;
+        border-top: 1px solid rgba(143,178,255,.22);
+        opacity: 0; transform: translateY(40px); transition: opacity .7s ease, transform .7s ease;
+      }
+      .culture-section.is-visible { opacity: 1; transform: translateY(0); }
+      .culture-section::before {
+        content: attr(data-index); align-self: start; grid-column: 1; grid-row: 1 / span 2;
+        font-family: ui-monospace, SFMono-Regular, Menlo, monospace; color: #8fb2ff;
+        font-size: clamp(88px, 13vw, 190px); line-height: .78; opacity: .34;
+      }
+      .culture-section::after {
+        content: ""; grid-column: 1; grid-row: 2; align-self: end; width: min(100%, 460px); aspect-ratio: 1 / 1.25;
+        border: 1px solid rgba(143,178,255,.18); background:
+          radial-gradient(circle at 28% 18%, rgba(255,255,255,.22), transparent 4rem),
+          linear-gradient(145deg, rgba(0,47,167,.48), rgba(8,12,18,.96) 56%, rgba(41,151,142,.12));
+        filter: saturate(1.2); animation: posterBreath 7s ease-in-out infinite alternate;
+      }
+      .culture-section:nth-of-type(2)::after { background:
+        radial-gradient(circle at 54% 46%, rgba(0,47,167,.64), transparent 7rem),
+        conic-gradient(from 110deg, rgba(143,178,255,.22), transparent, rgba(41,151,142,.2), transparent);
+      }
+      .culture-section:nth-of-type(3)::after { background:
+        linear-gradient(160deg, rgba(255,255,255,.1), transparent 18%),
+        repeating-linear-gradient(135deg, rgba(143,178,255,.18) 0 2px, transparent 2px 18px), #05080f;
+      }
+      .culture-section:nth-of-type(4)::after { background:
+        radial-gradient(ellipse at 50% 20%, rgba(41,151,142,.25), transparent 8rem),
+        linear-gradient(180deg, rgba(0,47,167,.5), #030405);
+      }
+      .culture-section:nth-of-type(5)::after { background:
+        repeating-linear-gradient(0deg, rgba(143,178,255,.2) 0 1px, transparent 1px 18px),
+        linear-gradient(130deg, rgba(0,47,167,.52), rgba(41,151,142,.12));
+      }
+      .culture-section:nth-of-type(6)::after { background:
+        radial-gradient(circle at 25% 28%, rgba(255,255,255,.18), transparent 6rem),
+        radial-gradient(circle at 75% 74%, rgba(0,47,167,.48), transparent 10rem), #050507;
+      }
+      .section-kicker {
+        grid-column: 2; font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+        font-size: 12px; color: #8fb2ff; margin: 0 0 18px;
+      }
+      .culture-section h2 {
+        grid-column: 2; font-family: ui-serif, Georgia, "Times New Roman", serif;
+        font-size: clamp(46px, 8vw, 116px); font-weight: 500; line-height: .86; max-width: 920px; margin-bottom: clamp(24px, 4vw, 56px);
+      }
+      .split-layout, .atlas-grid, .notes-board, .season-grid, .feed-grid {
+        grid-column: 2; width: 100%;
+      }
+      .split-layout { grid-template-columns: minmax(0, .95fr) minmax(340px, .9fr); gap: clamp(18px, 3vw, 44px); }
+      .flavor-map { grid-template-columns: 1fr; }
+      .flavor-node, .genome-node {
+        min-height: 116px; border-radius: 0; border-color: rgba(143,178,255,.2);
+        background: rgba(3,4,5,.62); padding: 20px;
+      }
+      .flavor-node strong, .genome-node strong { font-family: ui-serif, Georgia, "Times New Roman", serif; font-size: clamp(28px, 4vw, 54px); font-weight: 500; }
+      .map-output, .genome-output {
+        border-radius: 0; min-height: 420px; padding: 24px; background:
+          linear-gradient(180deg, rgba(0,47,167,.18), transparent), rgba(3,4,5,.72);
+      }
+      .atlas-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .atlas-card, .season-card, .feed-card, .note-card, .mini-item {
+        border-radius: 0; background: rgba(5,7,10,.76); border-color: rgba(143,178,255,.18);
+      }
+      .atlas-card { min-height: 360px; display: flex; flex-direction: column; justify-content: space-between; }
+      .atlas-card h3, .season-card h3, .feed-card h3 { font-family: ui-serif, Georgia, "Times New Roman", serif; font-size: clamp(28px, 4vw, 52px); font-weight: 500; }
+      .feed-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .feed-card { min-height: 260px; }
+      .archive-label {
+        margin-top: 12svh; padding: clamp(40px, 7vw, 96px) 0 28px;
+        border-top: 1px solid rgba(143,178,255,.28);
+      }
+      .archive-label .top-bar {
+        grid-template-columns: 1fr; gap: 28px;
+      }
+      .archive-label h1 {
+        font-family: ui-serif, Georgia, "Times New Roman", serif;
+        font-size: clamp(52px, 11vw, 150px); line-height: .82; font-weight: 500; max-width: 1000px;
+      }
+      .archive-label .brand-mark { display: none; }
+      .archive-label .muted { max-width: 620px; font-size: 18px; }
+      .stat-strip {
+        width: min(760px, 100%); border-radius: 0; background: transparent; padding: 0;
+        border: 0; border-top: 1px solid rgba(143,178,255,.22); padding-top: 18px;
+      }
+      .search-panel { margin-top: 52px; }
+      .search-box, .filter-bar input, .filter-bar select, .random-button, .recipe-card {
+        border-radius: 0;
+      }
+      .recipe-grid { columns: 4 250px; }
+      .recipe-card { padding: 20px; background: rgba(5,7,10,.82); }
+      @keyframes posterBreath { from { transform: translateY(0) scale(1); filter: brightness(.9) saturate(1); } to { transform: translateY(-14px) scale(1.025); filter: brightness(1.12) saturate(1.35); } }
+      @keyframes ambientDrift { from { filter: hue-rotate(0deg) brightness(.9); transform: scale(1); } to { filter: hue-rotate(16deg) brightness(1.12); transform: scale(1.035); } }
+      @keyframes textureCycle { 0% { transform: translate(0,0); } 50% { transform: translate(-3%, 2%); } 100% { transform: translate(2%, -3%); } }
+      @keyframes heroScan { 0%, 20% { transform: translateX(-120%) skewX(-12deg); } 60%, 100% { transform: translateX(120%) skewX(-12deg); } }
+      @keyframes cuePulse { 0%, 100% { transform: translateY(0); opacity: .6; } 50% { transform: translateY(8px); opacity: 1; } }
+      @keyframes orbitGlow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+      @keyframes scanLight { 0%, 12% { transform: translateX(-120%); opacity: .2; } 44% { opacity: 1; } 66%, 100% { transform: translateX(120%); opacity: .15; } }
+      @keyframes markPulse { 0%, 100% { filter: brightness(1); transform: scale(1); } 50% { filter: brightness(1.35); transform: scale(1.055); } }
+      @keyframes meter { 0%, 100% { transform: scaleX(.28); opacity: .58; } 50% { transform: scaleX(1); opacity: 1; } }
+      @keyframes cardIn { from { opacity: 0; transform: translateY(18px) scale(.985); filter: blur(3px); } to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); } }
+      @keyframes countPop { 0% { transform: scale(.76); } 58% { transform: scale(1.24); } 100% { transform: scale(1); } }
+      @keyframes randomGlow { 0%, 100% { box-shadow: 0 0 14px rgba(0,47,167,.22); } 50% { box-shadow: 0 0 34px rgba(0,47,167,.48); } }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after { animation-duration: .001ms !important; animation-iteration-count: 1 !important; transition-duration: .001ms !important; }
+      }
+      @media (max-width: 760px) {
+        .culture-hero { padding: 22px; }
+        .hero-subline, .scroll-cue { position: static; margin-top: 22px; }
+        .app-shell { width: min(100% - 24px, 1180px); padding-top: 18px; }
+        .culture-section { padding: 18px; }
+        .split-layout, .notes-board { grid-template-columns: 1fr; }
+        .top-bar { grid-template-columns: 1fr; }
+        .brand-lockup { align-items: flex-start; }
+        .brand-mark { width: 46px; height: 46px; font-size: 23px; }
+        .filter-bar { grid-template-columns: 1fr; }
+        .result-head { align-items: flex-start; flex-direction: column; }
+      }
+    </style>
+	  </head>
+	  <body>
+	    <section class="culture-hero">
+	      <div class="hero-backdrop"></div>
+	      <h1 class="hero-title">今晚你在寻找什么味道？</h1>
+	      <div class="hero-subline">A Cultural Archive for Bartenders</div>
+	      <div class="scroll-cue">Scroll to explore</div>
+	    </section>
+	    <main class="app-shell">
+	      <section class="culture-section" data-index="01">
+	        <div class="section-kicker">01 / Flavor Map</div>
+	        <h2>从风味进入，而不是从原料开始。</h2>
+	        <div class="split-layout">
+	          <div class="flavor-map" id="flavorMap"></div>
+	          <div class="map-output" id="flavorOutput"></div>
+	        </div>
+	      </section>
+
+	      <section class="culture-section" data-index="02">
+	        <div class="section-kicker">02 / Cocktail Genome</div>
+	        <h2>鸡尾酒不是孤岛，是一组会变异的基因。</h2>
+	        <div class="split-layout">
+	          <div class="connection-lines" id="genomeSpace"></div>
+	          <div class="genome-output" id="genomeOutput"></div>
+	        </div>
+	      </section>
+
+	      <section class="culture-section" data-index="03">
+	        <div class="section-kicker">03 / Ingredients Atlas</div>
+	        <h2>原料图鉴像旅行杂志，而不是百科词条。</h2>
+	        <div class="atlas-grid" id="atlasGrid"></div>
+	      </section>
+
+	      <section class="culture-section" data-index="04">
+	        <div class="section-kicker">04 / Bartender Notes</div>
+	        <h2>把研发现场留下来。</h2>
+	        <div class="notes-board">
+	          <form class="note-form" id="noteForm">
+	            <input id="noteIdea" placeholder="青芒果 × 木姜子 × 龙舌兰" />
+	            <select id="noteRating">
+	              <option value="★★★★★">★★★★★</option>
+	              <option value="★★★★☆">★★★★☆</option>
+	              <option value="★★★☆☆">★★★☆☆</option>
+	            </select>
+	            <textarea id="noteText" placeholder="青芒果太尖锐，可以尝试发酵处理。"></textarea>
+	            <button class="random-button" type="submit">记录实验</button>
+	          </form>
+	          <div class="mini-list" id="notesList"></div>
+	        </div>
+	      </section>
+
+	      <section class="culture-section" data-index="05">
+	        <div class="section-kicker">05 / Seasonal Ingredient Calendar</div>
+	        <h2>中国季节原料，是研发最好的脉搏。</h2>
+	        <div class="season-grid" id="seasonGrid"></div>
+	      </section>
+
+	      <section class="culture-section" data-index="06">
+	        <div class="section-kicker">06 / Inspiration Feed</div>
+	        <h2>真正的酒单灵感，经常不来自酒。</h2>
+	        <div class="feed-grid" id="feedGrid"></div>
+	      </section>
+
+	      <section class="archive-label">
+	      <section class="top-bar">
+	          <div class="brand-lockup">
+	            <div class="brand-mark">⚗</div>
+            <div>
+	              <h1>Recipe Archive</h1>
+	            <div class="muted">231 records across IBA, Difford, Imbibe, Liquor, Cocktail Club, Jigger Flip and Mixology-inspired references.</div>
+            </div>
+          </div>
+          <div class="stat-strip">
+          <div class="stat"><strong id="statTotal">0</strong><span>配方</span></div>
+          <div class="stat"><strong id="statIba">0</strong><span>IBA / 经典</span></div>
+          <div class="stat"><strong id="statCustom">0</strong><span>特调 / 参考</span></div>
+	          </div>
+	        </section>
+	      </section>
+
+      <section class="search-panel">
+        <div class="search-box" id="selectedBox">
+          <input id="ingredientInput" list="ingredientList" placeholder="输入原料，例如：金酒、柠檬汁、糖浆" />
+          <datalist id="ingredientList"></datalist>
+        </div>
+        <div class="filter-bar">
+          <input id="nameSearch" placeholder="按酒名搜索，例如 Negroni、马天尼、Spritz" />
+          <select id="categoryFilter"><option value="all">全部来源</option></select>
+          <select id="methodFilter"><option value="all">全部做法</option></select>
+          <select id="flavorFilter"><option value="all">全部风味</option></select>
+          <button class="random-button" id="randomButton">随机灵感</button>
+        </div>
+        <div class="suggestions" id="suggestions"></div>
+      </section>
+
+      <section class="result-head">
+        <div><strong>匹配配方</strong> <span class="count-badge" id="resultCount">13</span></div>
+        <div class="muted" id="activeFilter"></div>
+      </section>
+
+      <section class="recipe-grid" id="recipeGrid"></section>
+      <div class="empty" id="emptyState" hidden>暂时没有匹配配方</div>
+    </main>
+
+    <div class="drawer-mask" id="drawerMask"></div>
+    <aside class="drawer" id="drawer">
+      <div class="drawer-head">
+        <h2 id="drawerTitle"></h2>
+        <button class="close-button" id="closeDrawer" aria-label="关闭">×</button>
+      </div>
+      <div id="drawerTags" class="tag-row"></div>
+      <div class="info-grid" id="drawerInfo"></div>
+      <section class="drawer-section">
+        <h4>完整配比</h4>
+        <div class="recipe-table" id="drawerRecipe"></div>
+      </section>
+      <section class="drawer-section">
+        <h4>标准操作</h4>
+        <ol class="steps" id="drawerSteps"></ol>
+      </section>
+    </aside>
+
+    <script>
+      const cocktails = [
+        { id:'negroni', name:'尼格罗尼', category:'IBA经典', bases:['金酒','金巴利','甜味美思'], ingredients:['金酒','金巴利','甜味美思','橙皮'], flavorTags:['苦甜','草本','浓烈'], method:'搅拌', recipe:[['金酒','30 ml'],['金巴利','30 ml'],['甜味美思','30 ml'],['橙皮','1 片']], steps:['将液体原料倒入装冰的调酒杯。','搅拌至充分冰镇并稀释。','滤入加大冰块的古典杯，橙皮扭香装饰。'] },
+        { id:'dry-martini', name:'干马天尼', category:'IBA经典', bases:['金酒','干味美思'], ingredients:['金酒','干味美思','橄榄','柠檬皮'], flavorTags:['干冽','清爽','酒感'], method:'搅拌', recipe:[['金酒','60 ml'],['干味美思','10 ml'],['橄榄或柠檬皮','1 份']], steps:['将金酒和干味美思加入装冰调酒杯。','搅拌至杯壁起霜。','滤入冰镇马天尼杯，用橄榄或柠檬皮装饰。'] },
+        { id:'margarita', name:'玛格丽特', category:'IBA经典', bases:['龙舌兰','橙酒'], ingredients:['龙舌兰','君度','青柠汁','盐'], flavorTags:['酸爽','柑橘','盐感'], method:'摇合', recipe:[['龙舌兰','50 ml'],['君度','20 ml'],['青柠汁','15 ml'],['盐边','半圈']], steps:['杯口做半圈盐边并冰镇。','液体原料加冰摇合。','双重过滤入杯，青柠片装饰。'] },
+        { id:'whiskey-sour', name:'威士忌酸', category:'IBA经典', bases:['波本威士忌'], ingredients:['波本威士忌','柠檬汁','糖浆','蛋清','苦精'], flavorTags:['酸甜','柔滑','木质'], method:'摇合', recipe:[['波本威士忌','45 ml'],['柠檬汁','25 ml'],['糖浆','20 ml'],['蛋清','15 ml'],['安格斯图拉苦精','2 滴']], steps:['所有原料先干摇乳化。','加冰再次摇合至冰冷。','滤入古典杯，苦精点缀。'] },
+        { id:'daiquiri', name:'代基里', category:'IBA经典', bases:['白朗姆'], ingredients:['白朗姆','青柠汁','糖浆'], flavorTags:['酸甜','清脆','热带'], method:'摇合', recipe:[['白朗姆','60 ml'],['青柠汁','20 ml'],['糖浆','10 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇鸡尾酒杯。','用青柠轮或无装饰出品。'] },
+        { id:'old-fashioned', name:'古典鸡尾酒', category:'IBA经典', bases:['波本威士忌'], ingredients:['波本威士忌','方糖','苦精','苏打水','橙皮'], flavorTags:['浓烈','苦甜','木质'], method:'兑和', recipe:[['波本威士忌','45 ml'],['方糖','1 块'],['安格斯图拉苦精','2 滴'],['苏打水','少量'],['橙皮','1 片']], steps:['方糖、苦精和少量苏打水在杯中压溶。','加入大冰块和威士忌。','轻搅后用橙皮扭香装饰。'] },
+        { id:'mojito', name:'莫吉托', category:'IBA经典', bases:['白朗姆'], ingredients:['白朗姆','青柠汁','糖','薄荷','苏打水'], flavorTags:['清爽','草本','酸甜'], method:'捣压', recipe:[['白朗姆','45 ml'],['青柠汁','20 ml'],['白砂糖','2 茶匙'],['薄荷','8-10 片'],['苏打水','适量补满']], steps:['薄荷、糖和青柠汁轻压出香。','加入朗姆和碎冰搅拌。','苏打水补满，薄荷枝装饰。'] },
+        { id:'manhattan', name:'曼哈顿', category:'IBA经典', bases:['黑麦威士忌','甜味美思'], ingredients:['黑麦威士忌','甜味美思','苦精','酒浸樱桃'], flavorTags:['辛香','苦甜','顺滑'], method:'搅拌', recipe:[['黑麦威士忌','50 ml'],['甜味美思','20 ml'],['安格斯图拉苦精','1 滴'],['酒浸樱桃','1 颗']], steps:['所有液体原料加冰搅拌。','滤入冰镇鸡尾酒杯。','用酒浸樱桃装饰。'] },
+        { id:'espresso-martini', name:'浓缩咖啡马天尼', category:'IBA经典', bases:['伏特加','咖啡利口酒'], ingredients:['伏特加','咖啡利口酒','浓缩咖啡','糖浆','咖啡豆'], flavorTags:['咖啡','微甜','提神'], method:'摇合', recipe:[['伏特加','50 ml'],['咖啡利口酒','30 ml'],['浓缩咖啡','30 ml'],['糖浆','10 ml']], steps:['热浓缩咖啡冷却片刻后与其他原料加冰。','用力摇合出细密泡沫。','双重过滤入冰镇杯，三颗咖啡豆装饰。'] },
+        { id:'long-island', name:'长岛冰茶', category:'IBA经典', bases:['伏特加','金酒','白朗姆','龙舌兰','橙酒'], ingredients:['伏特加','金酒','白朗姆','龙舌兰','君度','柠檬汁','糖浆','可乐'], flavorTags:['高酒精','柑橘','清甜'], method:'摇合', recipe:[['伏特加','15 ml'],['金酒','15 ml'],['白朗姆','15 ml'],['龙舌兰','15 ml'],['君度','15 ml'],['柠檬汁','25 ml'],['糖浆','30 ml'],['可乐','适量补满']], steps:['除可乐外所有原料加冰轻摇。','倒入装冰高球杯。','可乐补满，柠檬片装饰。'] },
+        { id:'misty-garden', name:'雾庭金酒酸', category:'自定义特调', bases:['金酒'], ingredients:['金酒','接骨木花利口酒','柠檬汁','蜂蜜糖浆','黄瓜','蛋清'], flavorTags:['花香','酸甜','清新'], method:'摇合', recipe:[['金酒','45 ml'],['接骨木花利口酒','15 ml'],['柠檬汁','22.5 ml'],['蜂蜜糖浆','15 ml'],['黄瓜片','3 片'],['蛋清','15 ml']], steps:['黄瓜片轻压后加入其他原料。','先干摇，再加冰摇合。','双重过滤入冰镇杯，黄瓜薄片装饰。'] },
+        { id:'smoked-plum', name:'烟梅旧梦', category:'自定义特调', bases:['泥煤威士忌','黑麦威士忌'], ingredients:['泥煤威士忌','黑麦威士忌','梅子糖浆','柠檬汁','苦精'], flavorTags:['烟熏','酸甜','果脯'], method:'摇合', recipe:[['黑麦威士忌','35 ml'],['泥煤威士忌','10 ml'],['梅子糖浆','20 ml'],['柠檬汁','20 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰摇合。','滤入装大冰块古典杯。','用烟熏梅干或橙皮装饰。'] },
+        { id:'cacao-highball', name:'可可高球', category:'自定义特调', bases:['白朗姆'], ingredients:['白朗姆','可可利口酒','青柠汁','椰子水','苏打水'], flavorTags:['热带','轻盈','可可'], method:'兑和', recipe:[['白朗姆','40 ml'],['白可可利口酒','10 ml'],['青柠汁','10 ml'],['椰子水','60 ml'],['苏打水','适量补满']], steps:['高球杯加满冰块。','加入朗姆、可可利口酒、青柠汁和椰子水。','轻搅后以苏打水补满，青柠皮装饰。'] },
+        { id:'aperol-spritz', name:'阿佩罗橙光 Spritz', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'酒杯', bases:['阿佩罗','普罗塞克'], ingredients:['阿佩罗','普罗塞克','苏打水','橙片'], flavorTags:['苦甜','气泡','柑橘'], method:'兑和', recipe:[['普罗塞克','90 ml'],['阿佩罗','60 ml'],['苏打水','30 ml'],['橙片','1 片']], steps:['酒杯装满冰块。','加入普罗塞克、阿佩罗和苏打水。','轻轻提拉混合，用橙片装饰。'] },
+        { id:'boulevardier', name:'林荫大道 Boulevardier', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'4 分钟', glass:'古典杯', bases:['波本威士忌','金巴利','甜味美思'], ingredients:['波本威士忌','金巴利','甜味美思','橙皮'], flavorTags:['苦甜','木质','草本'], method:'搅拌', recipe:[['波本威士忌','45 ml'],['金巴利','30 ml'],['甜味美思','30 ml'],['橙皮','1 片']], steps:['所有液体原料加入装冰调酒杯。','搅拌至充分冰镇。','滤入古典杯，用橙皮扭香。'] },
+        { id:'vesper', name:'薇斯帕 Vesper', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','伏特加','利莱白'], ingredients:['金酒','伏特加','利莱白','柠檬皮'], flavorTags:['干冽','酒感','柑橘'], method:'摇合', recipe:[['金酒','45 ml'],['伏特加','15 ml'],['利莱白','7.5 ml'],['柠檬皮','1 片']], steps:['液体原料加冰用力摇合。','滤入冰镇鸡尾酒杯。','柠檬皮扭香后放入。'] },
+        { id:'french-75', name:'法兰西 75', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'中等', time:'5 分钟', glass:'香槟杯', bases:['金酒','香槟'], ingredients:['金酒','柠檬汁','糖浆','香槟','柠檬皮'], flavorTags:['气泡','酸甜','清爽'], method:'摇合', recipe:[['金酒','30 ml'],['柠檬汁','15 ml'],['糖浆','15 ml'],['香槟','60 ml'],['柠檬皮','1 片']], steps:['金酒、柠檬汁和糖浆加冰摇合。','滤入香槟杯。','以香槟补满，用柠檬皮装饰。'] },
+        { id:'bramble', name:'荆棘 Bramble', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['金酒'], ingredients:['金酒','柠檬汁','糖浆','黑莓利口酒','黑莓'], flavorTags:['浆果','酸甜','清新'], method:'摇合', recipe:[['金酒','50 ml'],['柠檬汁','25 ml'],['糖浆','12.5 ml'],['黑莓利口酒','15 ml'],['黑莓','2 颗']], steps:['金酒、柠檬汁、糖浆加冰摇合。','倒入装碎冰古典杯。','淋上黑莓利口酒，用黑莓装饰。'] },
+        { id:'clover-club', name:'三叶草俱乐部', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'进阶', time:'6 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','柠檬汁','覆盆子糖浆','蛋清'], flavorTags:['莓果','酸甜','柔滑'], method:'摇合', recipe:[['金酒','45 ml'],['柠檬汁','15 ml'],['覆盆子糖浆','15 ml'],['蛋清','15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入冰镇杯。'] },
+        { id:'cosmopolitan', name:'大都会 Cosmopolitan', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['柑橘伏特加','橙酒'], ingredients:['柑橘伏特加','君度','蔓越莓汁','青柠汁','橙皮'], flavorTags:['果味','酸甜','明亮'], method:'摇合', recipe:[['柑橘伏特加','40 ml'],['君度','15 ml'],['蔓越莓汁','30 ml'],['青柠汁','15 ml'],['橙皮','1 片']], steps:['所有液体原料加冰摇合。','双重过滤入冰镇鸡尾酒杯。','橙皮扭香装饰。'] },
+        { id:'tommys-margarita', name:'Tommy’s 玛格丽特', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['龙舌兰'], ingredients:['龙舌兰','青柠汁','龙舌兰糖浆'], flavorTags:['酸爽','龙舌兰','清甜'], method:'摇合', recipe:[['龙舌兰','60 ml'],['青柠汁','30 ml'],['龙舌兰糖浆','15 ml']], steps:['所有原料加冰摇合。','滤入装冰古典杯。','可用青柠片装饰。'] },
+        { id:'mai-tai', name:'迈泰 Mai Tai', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'进阶', time:'6 分钟', glass:'古典杯', bases:['牙买加朗姆','陈年朗姆'], ingredients:['牙买加朗姆','陈年朗姆','橙酒','青柠汁','杏仁糖浆','糖浆','薄荷'], flavorTags:['热带','坚果','酸甜'], method:'摇合', recipe:[['牙买加朗姆','30 ml'],['陈年朗姆','30 ml'],['橙酒','15 ml'],['青柠汁','30 ml'],['杏仁糖浆','15 ml'],['糖浆','7.5 ml']], steps:['所有液体原料加冰摇合。','倒入装碎冰古典杯。','薄荷和青柠壳装饰。'] },
+        { id:'singapore-sling', name:'新加坡司令', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'进阶', time:'7 分钟', glass:'高球杯', bases:['金酒','樱桃白兰地'], ingredients:['金酒','樱桃白兰地','君度','DOM','菠萝汁','青柠汁','石榴糖浆','苦精'], flavorTags:['热带','果味','复杂'], method:'摇合', recipe:[['金酒','30 ml'],['樱桃白兰地','15 ml'],['君度','7.5 ml'],['DOM','7.5 ml'],['菠萝汁','120 ml'],['青柠汁','15 ml'],['石榴糖浆','10 ml'],['苦精','1 滴']], steps:['所有原料加冰摇合。','滤入装冰高球杯。','菠萝片和樱桃装饰。'] },
+        { id:'pina-colada', name:'椰林飘香', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'5 分钟', glass:'飓风杯', bases:['白朗姆'], ingredients:['白朗姆','椰奶','菠萝汁','菠萝片'], flavorTags:['椰香','热带','甜润'], method:'摇合', recipe:[['白朗姆','50 ml'],['椰奶','30 ml'],['菠萝汁','50 ml'],['菠萝片','1 片']], steps:['所有液体原料加冰摇合或搅打。','倒入装冰杯。','菠萝片装饰。'] },
+        { id:'sidecar', name:'边车 Sidecar', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['干邑','橙酒'], ingredients:['干邑','君度','柠檬汁'], flavorTags:['酸甜','柑橘','酒感'], method:'摇合', recipe:[['干邑','50 ml'],['君度','20 ml'],['柠檬汁','20 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','可做糖边。'] },
+        { id:'last-word', name:'最后一语 Last Word', category:'IBA经典', source:'IBA 官方配方', collection:'Proposed IBA list', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','绿 Chartreuse'], ingredients:['金酒','绿 Chartreuse','黑樱桃利口酒','青柠汁'], flavorTags:['草本','酸甜','樱桃'], method:'摇合', recipe:[['金酒','22.5 ml'],['绿 Chartreuse','22.5 ml'],['黑樱桃利口酒','22.5 ml'],['青柠汁','22.5 ml']], steps:['所有原料等量加冰摇合。','双重过滤入冰镇杯。','可用樱桃装饰。'] },
+        { id:'sazerac', name:'萨泽拉克', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'进阶', time:'6 分钟', glass:'古典杯', bases:['黑麦威士忌','苦艾酒'], ingredients:['黑麦威士忌','方糖','Peychaud苦精','苦艾酒','柠檬皮'], flavorTags:['辛香','草本','浓烈'], method:'搅拌', recipe:[['黑麦威士忌','50 ml'],['方糖','1 块'],['Peychaud苦精','2 滴'],['苦艾酒','少量润杯'],['柠檬皮','1 片']], steps:['用苦艾酒润杯并倒出多余液体。','方糖和苦精压溶后加入威士忌与冰搅拌。','滤入杯中，柠檬皮扭香。'] },
+        { id:'caipirinha', name:'卡琵莉亚 Caipirinha', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['卡莎萨'], ingredients:['卡莎萨','青柠','白砂糖'], flavorTags:['青柠','清甜','原始'], method:'捣压', recipe:[['卡莎萨','60 ml'],['青柠','半颗切块'],['白砂糖','4 茶匙']], steps:['青柠和糖在杯中捣压。','加入碎冰和卡莎萨。','轻搅后出品。'] },
+        { id:'paloma', name:'帕洛玛 Paloma', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Refreshing Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['龙舌兰'], ingredients:['龙舌兰','青柠汁','葡萄柚汽水','盐'], flavorTags:['清爽','葡萄柚','气泡'], method:'兑和', recipe:[['龙舌兰','50 ml'],['青柠汁','10 ml'],['葡萄柚汽水','适量补满'],['盐边','可选']], steps:['杯中加冰，可做盐边。','加入龙舌兰和青柠汁。','葡萄柚汽水补满并轻搅。'] },
+        { id:'moscow-mule', name:'莫斯科骡子', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Refreshing Highballs', difficulty:'简单', time:'3 分钟', glass:'铜杯/高球杯', bases:['伏特加'], ingredients:['伏特加','青柠汁','姜汁啤酒','薄荷'], flavorTags:['辛辣','气泡','清爽'], method:'兑和', recipe:[['伏特加','45 ml'],['青柠汁','10 ml'],['姜汁啤酒','适量补满'],['薄荷','1 枝']], steps:['杯中装冰。','加入伏特加和青柠汁。','姜汁啤酒补满，轻搅并装饰。'] },
+        { id:'paper-plane', name:'纸飞机 Paper Plane', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Modern Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['波本威士忌','阿佩罗'], ingredients:['波本威士忌','阿佩罗','阿玛罗','柠檬汁'], flavorTags:['苦甜','酸爽','现代'], method:'摇合', recipe:[['波本威士忌','22.5 ml'],['阿佩罗','22.5 ml'],['阿玛罗','22.5 ml'],['柠檬汁','22.5 ml']], steps:['所有原料等量加冰摇合。','双重过滤入冰镇杯。','无装饰或柠檬皮装饰。'] },
+        { id:'penicillin', name:'盘尼西林 Penicillin', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Modern Classics', difficulty:'进阶', time:'6 分钟', glass:'古典杯', bases:['调和威士忌','泥煤威士忌'], ingredients:['调和威士忌','泥煤威士忌','柠檬汁','蜂蜜姜糖浆','姜片'], flavorTags:['烟熏','姜味','酸甜'], method:'摇合', recipe:[['调和威士忌','60 ml'],['柠檬汁','22.5 ml'],['蜂蜜姜糖浆','22.5 ml'],['泥煤威士忌','7.5 ml']], steps:['除泥煤威士忌外所有原料加冰摇合。','滤入装冰古典杯。','泥煤威士忌浮顶，姜片装饰。'] },
+        { id:'bee-knees', name:'蜜蜂膝盖 Bee’s Knees', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Gin Sours', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','柠檬汁','蜂蜜糖浆'], flavorTags:['蜂蜜','酸甜','清新'], method:'摇合', recipe:[['金酒','60 ml'],['柠檬汁','22.5 ml'],['蜂蜜糖浆','22.5 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','可用柠檬皮装饰。'] },
+        { id:'naked-famous', name:'裸与名 Naked and Famous', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Modern Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['梅斯卡尔','阿佩罗','黄 Chartreuse'], ingredients:['梅斯卡尔','阿佩罗','黄 Chartreuse','青柠汁'], flavorTags:['烟熏','苦甜','草本'], method:'摇合', recipe:[['梅斯卡尔','22.5 ml'],['阿佩罗','22.5 ml'],['黄 Chartreuse','22.5 ml'],['青柠汁','22.5 ml']], steps:['所有原料等量加冰摇合。','双重过滤入冰镇杯。','无装饰出品。'] }
+      ];
+
+      const selected = [];
+      const extraCocktails = [
+        { id:'americano', name:'美国佬 Americano', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['金巴利','甜味美思'], ingredients:['金巴利','甜味美思','苏打水','橙片'], flavorTags:['苦甜','气泡','低酒精'], method:'兑和', recipe:[['金巴利','30 ml'],['甜味美思','30 ml'],['苏打水','适量补满'],['橙片','1 片']], steps:['杯中加冰。','加入金巴利和甜味美思。','苏打水补满，轻搅后用橙片装饰。'] },
+        { id:'aviation', name:'飞行 Aviation', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','黑樱桃利口酒','紫罗兰利口酒','柠檬汁'], flavorTags:['花香','酸甜','樱桃'], method:'摇合', recipe:[['金酒','45 ml'],['黑樱桃利口酒','15 ml'],['柠檬汁','15 ml'],['紫罗兰利口酒','1 茶匙']], steps:['所有原料加冰摇合。','双重过滤入冰镇鸡尾酒杯。','可用樱桃装饰。'] },
+        { id:'between-the-sheets', name:'床笫之间 Between the Sheets', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['白朗姆','干邑','橙酒'], ingredients:['白朗姆','干邑','君度','柠檬汁'], flavorTags:['酸甜','柑橘','酒感'], method:'摇合', recipe:[['白朗姆','30 ml'],['干邑','30 ml'],['君度','30 ml'],['柠檬汁','20 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','可用柠檬皮装饰。'] },
+        { id:'casino', name:'赌场 Casino', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','黑樱桃利口酒','橙味苦精','柠檬汁'], flavorTags:['干冽','果核','柑橘'], method:'摇合', recipe:[['金酒','40 ml'],['黑樱桃利口酒','10 ml'],['柠檬汁','10 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰摇合。','滤入冰镇鸡尾酒杯。','樱桃或柠檬皮装饰。'] },
+        { id:'corpse-reviver-2', name:'亡者复苏 2 号', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'进阶', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒','利莱白','橙酒'], ingredients:['金酒','利莱白','君度','柠檬汁','苦艾酒'], flavorTags:['草本','酸甜','清醒'], method:'摇合', recipe:[['金酒','30 ml'],['利莱白','30 ml'],['君度','30 ml'],['柠檬汁','30 ml'],['苦艾酒','少量润杯']], steps:['苦艾酒润杯。','其余原料加冰摇合。','滤入杯中。'] },
+        { id:'dark-n-stormy', name:'黑暗风暴 Dark ’n’ Stormy', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['黑朗姆'], ingredients:['黑朗姆','姜汁啤酒','青柠角'], flavorTags:['辛辣','气泡','朗姆'], method:'兑和', recipe:[['姜汁啤酒','100 ml'],['黑朗姆','60 ml'],['青柠角','1 块']], steps:['高球杯加冰并倒入姜汁啤酒。','黑朗姆浮顶。','青柠角装饰。'] },
+        { id:'dirty-martini', name:'脏马天尼 Dirty Martini', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['伏特加','干味美思'], ingredients:['伏特加','干味美思','橄榄盐水','橄榄'], flavorTags:['咸鲜','干冽','酒感'], method:'搅拌', recipe:[['伏特加','60 ml'],['干味美思','10 ml'],['橄榄盐水','10 ml'],['橄榄','1-3 颗']], steps:['液体原料加冰搅拌。','滤入冰镇杯。','用橄榄装饰。'] },
+        { id:'espresso-tonic', name:'浓缩咖啡汤力', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Low ABV / Cafe', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['咖啡'], ingredients:['浓缩咖啡','汤力水','橙皮','冰块'], flavorTags:['咖啡','气泡','苦甜'], method:'兑和', recipe:[['汤力水','120 ml'],['浓缩咖啡','30 ml'],['橙皮','1 片']], steps:['高球杯加冰并倒入汤力水。','缓慢倒入浓缩咖啡形成层次。','橙皮扭香。'] },
+        { id:'garibaldi', name:'加里波第 Garibaldi', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Aperitivo', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['金巴利'], ingredients:['金巴利','橙汁','橙片'], flavorTags:['苦甜','橙香','低酒精'], method:'兑和', recipe:[['金巴利','45 ml'],['橙汁','120 ml'],['橙片','1 片']], steps:['杯中加冰。','加入金巴利。','以橙汁补满并轻搅。'] },
+        { id:'gimlet', name:'吉姆雷特 Gimlet', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','青柠汁','糖浆'], flavorTags:['酸甜','清脆','金酒'], method:'摇合', recipe:[['金酒','60 ml'],['青柠汁','22.5 ml'],['糖浆','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','可用青柠皮装饰。'] },
+        { id:'godfather', name:'教父 Godfather', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['苏格兰威士忌','杏仁利口酒'], ingredients:['苏格兰威士忌','杏仁利口酒'], flavorTags:['坚果','甜润','浓烈'], method:'兑和', recipe:[['苏格兰威士忌','35 ml'],['杏仁利口酒','35 ml']], steps:['古典杯加入大冰块。','倒入两种原料。','轻搅后出品。'] },
+        { id:'gold-rush', name:'淘金热 Gold Rush', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Whiskey Sours', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['波本威士忌'], ingredients:['波本威士忌','柠檬汁','蜂蜜糖浆'], flavorTags:['蜂蜜','酸甜','木质'], method:'摇合', recipe:[['波本威士忌','60 ml'],['柠檬汁','22.5 ml'],['蜂蜜糖浆','22.5 ml']], steps:['所有原料加冰摇合。','滤入装大冰块古典杯。','可用柠檬皮装饰。'] },
+        { id:'hanky-panky', name:'汉基潘基 Hanky Panky', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','甜味美思'], ingredients:['金酒','甜味美思','Fernet-Branca','橙皮'], flavorTags:['草本','苦甜','浓烈'], method:'搅拌', recipe:[['金酒','45 ml'],['甜味美思','45 ml'],['Fernet-Branca','7.5 ml'],['橙皮','1 片']], steps:['液体原料加冰搅拌。','滤入冰镇杯。','橙皮扭香。'] },
+        { id:'hemingway-special', name:'海明威特调', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['白朗姆'], ingredients:['白朗姆','葡萄柚汁','黑樱桃利口酒','青柠汁'], flavorTags:['葡萄柚','酸爽','干冽'], method:'摇合', recipe:[['白朗姆','60 ml'],['葡萄柚汁','40 ml'],['黑樱桃利口酒','15 ml'],['青柠汁','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','可用青柠片装饰。'] },
+        { id:'irish-coffee', name:'爱尔兰咖啡', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'中等', time:'5 分钟', glass:'爱尔兰咖啡杯', bases:['爱尔兰威士忌'], ingredients:['爱尔兰威士忌','热咖啡','红糖','奶油'], flavorTags:['咖啡','温热','奶油'], method:'兑和', recipe:[['爱尔兰威士忌','50 ml'],['热咖啡','120 ml'],['红糖','1 茶匙'],['轻打奶油','适量']], steps:['杯中加入糖、威士忌和热咖啡。','搅拌至糖溶解。','轻打奶油浮顶。'] },
+        { id:'jungle-bird', name:'丛林鸟 Jungle Bird', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Tropical Bitter', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['黑朗姆','金巴利'], ingredients:['黑朗姆','金巴利','菠萝汁','青柠汁','糖浆'], flavorTags:['热带','苦甜','菠萝'], method:'摇合', recipe:[['黑朗姆','45 ml'],['金巴利','22.5 ml'],['菠萝汁','45 ml'],['青柠汁','15 ml'],['糖浆','15 ml']], steps:['所有原料加冰摇合。','滤入装冰杯。','菠萝叶或橙片装饰。'] },
+        { id:'kir', name:'基尔 Kir', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'2 分钟', glass:'白葡萄酒杯', bases:['白葡萄酒','黑加仑利口酒'], ingredients:['白葡萄酒','黑加仑利口酒'], flavorTags:['果味','低酒精','清爽'], method:'兑和', recipe:[['黑加仑利口酒','10 ml'],['白葡萄酒','90 ml']], steps:['杯中先倒入黑加仑利口酒。','加入冰镇白葡萄酒。','轻轻混合。'] },
+        { id:'lemon-drop', name:'柠檬滴 Lemon Drop', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Vodka Sours', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['伏特加'], ingredients:['伏特加','柠檬汁','糖浆','柠檬皮'], flavorTags:['柠檬','酸甜','清亮'], method:'摇合', recipe:[['伏特加','45 ml'],['柠檬汁','22.5 ml'],['糖浆','15 ml'],['柠檬皮','1 片']], steps:['可给杯口做糖边。','液体原料加冰摇合。','滤入杯中，柠檬皮装饰。'] },
+        { id:'mary-pickford', name:'玛丽皮克福德', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['白朗姆'], ingredients:['白朗姆','菠萝汁','石榴糖浆','黑樱桃利口酒'], flavorTags:['菠萝','甜润','樱桃'], method:'摇合', recipe:[['白朗姆','45 ml'],['菠萝汁','45 ml'],['石榴糖浆','5 ml'],['黑樱桃利口酒','7.5 ml']], steps:['所有原料加冰摇合。','滤入冰镇杯。','可用樱桃装饰。'] },
+        { id:'mint-julep', name:'薄荷茱莉普', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'中等', time:'5 分钟', glass:'茱莉普杯', bases:['波本威士忌'], ingredients:['波本威士忌','薄荷','糖浆','碎冰'], flavorTags:['薄荷','清凉','木质'], method:'捣压', recipe:[['波本威士忌','60 ml'],['糖浆','10 ml'],['薄荷','8 片'],['碎冰','满杯']], steps:['薄荷和糖浆轻压出香。','加入碎冰和波本。','搅拌并补满碎冰，薄荷装饰。'] },
+        { id:'monkey-gland', name:'猴腺 Monkey Gland', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','橙汁','石榴糖浆','苦艾酒'], flavorTags:['橙香','草本','酸甜'], method:'摇合', recipe:[['金酒','45 ml'],['橙汁','45 ml'],['石榴糖浆','1 茶匙'],['苦艾酒','1 茶匙']], steps:['所有原料加冰摇合。','滤入冰镇杯。','可用橙皮装饰。'] },
+        { id:'new-york-sour', name:'纽约酸 New York Sour', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Whiskey Sours', difficulty:'进阶', time:'6 分钟', glass:'古典杯', bases:['波本威士忌','红葡萄酒'], ingredients:['波本威士忌','柠檬汁','糖浆','红葡萄酒','蛋清'], flavorTags:['酸甜','红酒','层次'], method:'摇合', recipe:[['波本威士忌','60 ml'],['柠檬汁','22.5 ml'],['糖浆','22.5 ml'],['红葡萄酒','15 ml'],['蛋清','可选 15 ml']], steps:['威士忌、柠檬汁、糖浆和蛋清摇合。','滤入装冰杯。','红葡萄酒缓慢浮顶。'] },
+        { id:'old-cuban', name:'老古巴 Old Cuban', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Sparkling Rum', difficulty:'进阶', time:'6 分钟', glass:'香槟杯', bases:['陈年朗姆','香槟'], ingredients:['陈年朗姆','青柠汁','糖浆','薄荷','苦精','香槟'], flavorTags:['气泡','薄荷','朗姆'], method:'摇合', recipe:[['陈年朗姆','45 ml'],['青柠汁','22.5 ml'],['糖浆','22.5 ml'],['薄荷','6 片'],['苦精','2 滴'],['香槟','适量补满']], steps:['除香槟外原料加冰摇合。','双重过滤入香槟杯。','香槟补满。'] },
+        { id:'planters-punch', name:'种植者宾治', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['黑朗姆'], ingredients:['黑朗姆','青柠汁','糖浆','苦精','苏打水'], flavorTags:['热带','酸甜','朗姆'], method:'摇合', recipe:[['黑朗姆','45 ml'],['青柠汁','35 ml'],['糖浆','30 ml'],['苦精','2 滴'],['苏打水','适量补满']], steps:['除苏打水外原料加冰摇合。','倒入装冰高球杯。','苏打水补满。'] },
+        { id:'ramos-gin-fizz', name:'拉莫斯金菲士', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'进阶', time:'8 分钟', glass:'高球杯', bases:['金酒'], ingredients:['金酒','柠檬汁','青柠汁','糖浆','奶油','蛋清','橙花水','苏打水'], flavorTags:['奶油','气泡','花香'], method:'摇合', recipe:[['金酒','45 ml'],['柠檬汁','15 ml'],['青柠汁','15 ml'],['糖浆','30 ml'],['奶油','60 ml'],['蛋清','30 ml'],['橙花水','3 滴'],['苏打水','适量']], steps:['除苏打水外原料先干摇。','加冰长时间摇合。','滤入杯中，苏打水补满。'] },
+        { id:'rob-roy', name:'罗伯罗伊 Rob Roy', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['苏格兰威士忌','甜味美思'], ingredients:['苏格兰威士忌','甜味美思','苦精','酒浸樱桃'], flavorTags:['苦甜','木质','顺滑'], method:'搅拌', recipe:[['苏格兰威士忌','45 ml'],['甜味美思','25 ml'],['苦精','1 滴'],['酒浸樱桃','1 颗']], steps:['液体原料加冰搅拌。','滤入冰镇杯。','用酒浸樱桃装饰。'] },
+        { id:'rusty-nail', name:'生锈钉 Rusty Nail', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['苏格兰威士忌','蜂蜜草本利口酒'], ingredients:['苏格兰威士忌','Drambuie'], flavorTags:['蜂蜜','草本','浓烈'], method:'兑和', recipe:[['苏格兰威士忌','45 ml'],['Drambuie','25 ml']], steps:['古典杯加冰。','倒入两种原料。','轻搅后出品。'] },
+        { id:'southside', name:'南区 Southside', category:'Cocktail Club 参考', source:'Cocktail Club 风格补充', collection:'Gin Refreshers', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','柠檬汁','糖浆','薄荷'], flavorTags:['薄荷','酸甜','清爽'], method:'摇合', recipe:[['金酒','60 ml'],['柠檬汁','22.5 ml'],['糖浆','15 ml'],['薄荷','6 片']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','薄荷叶装饰。'] },
+        { id:'tipperary', name:'蒂珀雷里 Tipperary', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['爱尔兰威士忌','甜味美思','绿 Chartreuse'], ingredients:['爱尔兰威士忌','甜味美思','绿 Chartreuse','苦精'], flavorTags:['草本','苦甜','威士忌'], method:'搅拌', recipe:[['爱尔兰威士忌','50 ml'],['甜味美思','25 ml'],['绿 Chartreuse','15 ml'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','可用橙皮装饰。'] },
+        { id:'tuxedo', name:'燕尾服 Tuxedo', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'进阶', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒','干味美思'], ingredients:['金酒','干味美思','黑樱桃利口酒','苦艾酒','橙味苦精'], flavorTags:['干冽','草本','樱桃'], method:'搅拌', recipe:[['金酒','30 ml'],['干味美思','30 ml'],['黑樱桃利口酒','2.5 ml'],['苦艾酒','1 茶匙'],['橙味苦精','3 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','樱桃或柠檬皮装饰。'] },
+        { id:'white-lady', name:'白色佳人 White Lady', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','橙酒'], ingredients:['金酒','君度','柠檬汁','蛋清'], flavorTags:['酸甜','柑橘','柔滑'], method:'摇合', recipe:[['金酒','40 ml'],['君度','30 ml'],['柠檬汁','20 ml'],['蛋清','可选 15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入冰镇杯。'] }
+      ];
+      cocktails.push(...extraCocktails);
+      const libraryCocktails = [
+        { id:'adonis', name:'阿多尼斯 Adonis', category:'Liquor 参考', source:'Liquor / Classic Cocktail', collection:'Sherry Classics', difficulty:'简单', time:'3 分钟', glass:'鸡尾酒杯', bases:['菲诺雪莉','甜味美思'], ingredients:['菲诺雪莉','甜味美思','橙味苦精'], flavorTags:['低酒精','坚果','苦甜'], method:'搅拌', recipe:[['菲诺雪莉','45 ml'],['甜味美思','45 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','橙皮扭香。'] },
+        { id:'amaretto-sour', name:'杏仁酸 Amaretto Sour', category:'Liquor 参考', source:'Liquor / Sour', collection:'Easy Sours', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['杏仁利口酒'], ingredients:['杏仁利口酒','柠檬汁','波本威士忌','糖浆','蛋清'], flavorTags:['坚果','酸甜','柔滑'], method:'摇合', recipe:[['杏仁利口酒','45 ml'],['波本威士忌','15 ml'],['柠檬汁','30 ml'],['糖浆','10 ml'],['蛋清','可选 15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','滤入装冰古典杯。'] },
+        { id:'apple-martini', name:'苹果马天尼 Apple Martini', category:'Cocktail Club 参考', source:'Cocktail Club / Party Favorite', collection:'Party Favorites', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['伏特加','苹果利口酒'], ingredients:['伏特加','苹果利口酒','柠檬汁','糖浆'], flavorTags:['苹果','酸甜','清亮'], method:'摇合', recipe:[['伏特加','45 ml'],['苹果利口酒','30 ml'],['柠檬汁','10 ml'],['糖浆','5 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','苹果片装饰。'] },
+        { id:'bacardi-cocktail', name:'百加得鸡尾酒 Bacardi Cocktail', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['白朗姆'], ingredients:['白朗姆','青柠汁','石榴糖浆'], flavorTags:['酸甜','石榴','朗姆'], method:'摇合', recipe:[['白朗姆','45 ml'],['青柠汁','20 ml'],['石榴糖浆','10 ml']], steps:['所有原料加冰摇合。','滤入冰镇杯。','可用青柠片装饰。'] },
+        { id:'banana-daiquiri', name:'香蕉代基里 Banana Daiquiri', category:'Liquor 参考', source:'Liquor / Frozen', collection:'Blended Drinks', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['白朗姆'], ingredients:['白朗姆','香蕉','青柠汁','糖浆','冰块'], flavorTags:['香蕉','热带','酸甜'], method:'搅打', recipe:[['白朗姆','45 ml'],['香蕉','半根'],['青柠汁','20 ml'],['糖浆','15 ml'],['冰块','适量']], steps:['所有原料放入搅拌机。','搅打至细腻。','倒入杯中。'] },
+        { id:'bellini', name:'贝利尼 Bellini', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'香槟杯', bases:['普罗塞克'], ingredients:['普罗塞克','白桃泥'], flavorTags:['桃子','气泡','轻盈'], method:'兑和', recipe:[['白桃泥','50 ml'],['普罗塞克','100 ml']], steps:['杯中加入白桃泥。','缓慢加入普罗塞克。','轻轻混合。'] },
+        { id:'black-russian', name:'黑俄罗斯 Black Russian', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['伏特加','咖啡利口酒'], ingredients:['伏特加','咖啡利口酒'], flavorTags:['咖啡','浓烈','微甜'], method:'兑和', recipe:[['伏特加','50 ml'],['咖啡利口酒','20 ml']], steps:['古典杯加冰。','倒入原料。','轻搅后出品。'] },
+        { id:'bloody-mary', name:'血腥玛丽 Bloody Mary', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['伏特加'], ingredients:['伏特加','番茄汁','柠檬汁','辣椒汁','伍斯特酱','芹菜盐','黑胡椒'], flavorTags:['咸鲜','辛辣','番茄'], method:'兑和', recipe:[['伏特加','45 ml'],['番茄汁','90 ml'],['柠檬汁','15 ml'],['辣椒汁','少量'],['伍斯特酱','少量']], steps:['所有原料在杯中加入冰块。','轻轻滚动混合。','芹菜或柠檬装饰。'] },
+        { id:'blue-hawaii', name:'蓝色夏威夷 Blue Hawaii', category:'Liquor 参考', source:'Liquor / Tropical', collection:'Tiki & Tropical', difficulty:'中等', time:'5 分钟', glass:'飓风杯', bases:['白朗姆','伏特加','蓝橙酒'], ingredients:['白朗姆','伏特加','蓝橙酒','菠萝汁','柠檬汁','糖浆'], flavorTags:['热带','菠萝','蓝橙'], method:'摇合', recipe:[['白朗姆','22.5 ml'],['伏特加','22.5 ml'],['蓝橙酒','15 ml'],['菠萝汁','90 ml'],['柠檬汁','15 ml'],['糖浆','15 ml']], steps:['所有原料加冰摇合。','倒入装冰杯。','菠萝片装饰。'] },
+        { id:'champagne-cocktail', name:'香槟鸡尾酒 Champagne Cocktail', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'香槟杯', bases:['香槟','干邑'], ingredients:['香槟','方糖','苦精','干邑','橙皮'], flavorTags:['气泡','苦甜','优雅'], method:'兑和', recipe:[['方糖','1 块'],['苦精','2 滴'],['干邑','10 ml'],['香槟','适量补满']], steps:['方糖滴上苦精放入杯中。','加入干邑。','香槟补满，橙皮装饰。'] },
+        { id:'chartreuse-swizzle', name:'查特酒碎冰 Chartreuse Swizzle', category:'Liquor 参考', source:'Liquor / Modern Classic', collection:'Herbal Refreshers', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['绿 Chartreuse'], ingredients:['绿 Chartreuse','菠萝汁','青柠汁','Falernum','薄荷'], flavorTags:['草本','菠萝','碎冰'], method:'搅拌', recipe:[['绿 Chartreuse','45 ml'],['菠萝汁','30 ml'],['青柠汁','22.5 ml'],['Falernum','15 ml']], steps:['原料加入装碎冰高球杯。','用吧勺快速旋搅。','补碎冰并装饰。'] },
+        { id:'cuba-libre', name:'自由古巴 Cuba Libre', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['白朗姆'], ingredients:['白朗姆','青柠汁','可乐'], flavorTags:['可乐','清爽','酸甜'], method:'兑和', recipe:[['白朗姆','50 ml'],['青柠汁','10 ml'],['可乐','适量补满']], steps:['高球杯加冰。','加入朗姆和青柠汁。','可乐补满并轻搅。'] },
+        { id:'el-diablo', name:'恶魔 El Diablo', category:'Liquor 参考', source:'Liquor / Tequila', collection:'Refreshing Highballs', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['龙舌兰','黑加仑利口酒'], ingredients:['龙舌兰','黑加仑利口酒','青柠汁','姜汁啤酒'], flavorTags:['浆果','辛辣','气泡'], method:'兑和', recipe:[['龙舌兰','45 ml'],['黑加仑利口酒','15 ml'],['青柠汁','15 ml'],['姜汁啤酒','适量补满']], steps:['杯中加冰。','加入前三种原料。','姜汁啤酒补满。'] },
+        { id:'enzoni', name:'恩佐尼 Enzoni', category:'Liquor 参考', source:'Liquor / Modern Classic', collection:'Gin Bitter', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['金酒','金巴利'], ingredients:['金酒','金巴利','青葡萄','柠檬汁','糖浆'], flavorTags:['葡萄','苦甜','酸爽'], method:'摇合', recipe:[['金酒','30 ml'],['金巴利','30 ml'],['柠檬汁','22.5 ml'],['糖浆','15 ml'],['青葡萄','5 颗']], steps:['青葡萄轻压。','加入其他原料和冰摇合。','双重过滤入装冰杯。'] },
+        { id:'floradora', name:'弗洛拉朵拉 Floradora', category:'Liquor 参考', source:'Liquor / Gin Highball', collection:'Refreshing Highballs', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['金酒'], ingredients:['金酒','覆盆子糖浆','青柠汁','姜汁汽水'], flavorTags:['莓果','辛辣','气泡'], method:'兑和', recipe:[['金酒','45 ml'],['覆盆子糖浆','15 ml'],['青柠汁','15 ml'],['姜汁汽水','适量补满']], steps:['前三种原料加冰摇合或直接入杯。','姜汁汽水补满。','轻搅并装饰。'] },
+        { id:'french-connection', name:'法式连线 French Connection', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['干邑','杏仁利口酒'], ingredients:['干邑','杏仁利口酒'], flavorTags:['坚果','甜润','浓烈'], method:'兑和', recipe:[['干邑','35 ml'],['杏仁利口酒','35 ml']], steps:['古典杯加入大冰块。','倒入两种原料。','轻搅后出品。'] },
+        { id:'fuzzy-navel', name:'毛茸茸肚脐 Fuzzy Navel', category:'Cocktail Club 参考', source:'Cocktail Club / Easy Cocktail', collection:'Easy to Make', difficulty:'简单', time:'2 分钟', glass:'高球杯', bases:['桃味利口酒'], ingredients:['桃味利口酒','橙汁'], flavorTags:['桃子','橙香','甜润'], method:'兑和', recipe:[['桃味利口酒','45 ml'],['橙汁','适量补满']], steps:['高球杯加冰。','加入桃味利口酒。','橙汁补满并轻搅。'] },
+        { id:'gin-fizz', name:'金菲士 Gin Fizz', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['金酒'], ingredients:['金酒','柠檬汁','糖浆','苏打水'], flavorTags:['气泡','酸甜','清爽'], method:'摇合', recipe:[['金酒','45 ml'],['柠檬汁','30 ml'],['糖浆','10 ml'],['苏打水','适量补满']], steps:['除苏打水外加冰摇合。','滤入杯中。','苏打水补满。'] },
+        { id:'gin-rickey', name:'金利克 Gin Rickey', category:'Liquor 参考', source:'Liquor / Highball', collection:'Refreshing Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['金酒'], ingredients:['金酒','青柠汁','苏打水'], flavorTags:['清爽','酸爽','气泡'], method:'兑和', recipe:[['金酒','60 ml'],['青柠汁','15 ml'],['苏打水','适量补满']], steps:['杯中加冰。','加入金酒和青柠汁。','苏打水补满。'] },
+        { id:'grasshopper', name:'蚱蜢 Grasshopper', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['薄荷利口酒','可可利口酒'], ingredients:['绿薄荷利口酒','白可可利口酒','奶油'], flavorTags:['薄荷','奶油','甜点'], method:'摇合', recipe:[['绿薄荷利口酒','30 ml'],['白可可利口酒','30 ml'],['奶油','30 ml']], steps:['所有原料加冰摇合。','滤入冰镇杯。','可用薄荷叶装饰。'] },
+        { id:'greyhound', name:'灰狗 Greyhound', category:'Liquor 参考', source:'Liquor / Vodka Highball', collection:'Simple Classics', difficulty:'简单', time:'2 分钟', glass:'高球杯', bases:['伏特加'], ingredients:['伏特加','葡萄柚汁'], flavorTags:['葡萄柚','清爽','酸苦'], method:'兑和', recipe:[['伏特加','45 ml'],['葡萄柚汁','适量补满']], steps:['杯中加冰。','加入伏特加。','葡萄柚汁补满并轻搅。'] },
+        { id:'harvey-wallbanger', name:'哈维撞墙 Harvey Wallbanger', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['伏特加','香草草本利口酒'], ingredients:['伏特加','橙汁','Galliano'], flavorTags:['橙香','香草','甜润'], method:'兑和', recipe:[['伏特加','45 ml'],['橙汁','90 ml'],['Galliano','15 ml']], steps:['伏特加和橙汁入杯加冰。','轻搅。','Galliano 浮顶。'] },
+        { id:'hot-toddy', name:'热托蒂 Hot Toddy', category:'Liquor 参考', source:'Liquor / Warm Drink', collection:'Hot Drinks', difficulty:'简单', time:'5 分钟', glass:'热饮杯', bases:['威士忌'], ingredients:['威士忌','蜂蜜','柠檬汁','热水','丁香'], flavorTags:['温热','蜂蜜','柠檬'], method:'兑和', recipe:[['威士忌','45 ml'],['蜂蜜','15 ml'],['柠檬汁','15 ml'],['热水','适量']], steps:['杯中加入蜂蜜、柠檬汁和威士忌。','热水补满。','轻搅并装饰。'] },
+        { id:'hurricane', name:'飓风 Hurricane', category:'Liquor 参考', source:'Liquor / Tropical', collection:'Tiki & Tropical', difficulty:'中等', time:'5 分钟', glass:'飓风杯', bases:['浅色朗姆','深色朗姆'], ingredients:['浅色朗姆','深色朗姆','百香果糖浆','橙汁','青柠汁','石榴糖浆'], flavorTags:['热带','果味','朗姆'], method:'摇合', recipe:[['浅色朗姆','30 ml'],['深色朗姆','30 ml'],['百香果糖浆','30 ml'],['橙汁','30 ml'],['青柠汁','15 ml'],['石榴糖浆','10 ml']], steps:['所有原料加冰摇合。','倒入装冰飓风杯。','橙片和樱桃装饰。'] },
+        { id:'kamikaze', name:'神风 Kamikaze', category:'Cocktail Club 参考', source:'Cocktail Club / Party Favorite', collection:'Party Favorites', difficulty:'简单', time:'3 分钟', glass:'小杯/鸡尾酒杯', bases:['伏特加','橙酒'], ingredients:['伏特加','君度','青柠汁'], flavorTags:['酸爽','柑橘','派对'], method:'摇合', recipe:[['伏特加','30 ml'],['君度','30 ml'],['青柠汁','30 ml']], steps:['所有原料加冰摇合。','滤入小杯或鸡尾酒杯。','青柠片装饰。'] },
+        { id:'kentucky-mule', name:'肯塔基骡子 Kentucky Mule', category:'Liquor 参考', source:'Liquor / Whiskey Highball', collection:'Refreshing Highballs', difficulty:'简单', time:'3 分钟', glass:'铜杯/高球杯', bases:['波本威士忌'], ingredients:['波本威士忌','青柠汁','姜汁啤酒'], flavorTags:['辛辣','气泡','木质'], method:'兑和', recipe:[['波本威士忌','60 ml'],['青柠汁','15 ml'],['姜汁啤酒','适量补满']], steps:['杯中加冰。','加入威士忌和青柠汁。','姜汁啤酒补满。'] },
+        { id:'long-beach-iced-tea', name:'长滩冰茶 Long Beach Iced Tea', category:'Cocktail Club 参考', source:'Cocktail Club / Party Favorite', collection:'Party Favorites', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['伏特加','金酒','白朗姆','龙舌兰','橙酒'], ingredients:['伏特加','金酒','白朗姆','龙舌兰','君度','柠檬汁','糖浆','蔓越莓汁'], flavorTags:['高酒精','蔓越莓','酸甜'], method:'摇合', recipe:[['伏特加','15 ml'],['金酒','15 ml'],['白朗姆','15 ml'],['龙舌兰','15 ml'],['君度','15 ml'],['柠檬汁','25 ml'],['糖浆','20 ml'],['蔓越莓汁','适量补满']], steps:['除蔓越莓汁外加冰轻摇。','倒入装冰高球杯。','蔓越莓汁补满。'] },
+        { id:'martinez', name:'马丁内斯 Martinez', category:'Liquor 参考', source:'Liquor / Classic Cocktail', collection:'Vermouth Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['老汤姆金酒','甜味美思'], ingredients:['老汤姆金酒','甜味美思','黑樱桃利口酒','苦精'], flavorTags:['苦甜','樱桃','草本'], method:'搅拌', recipe:[['老汤姆金酒','45 ml'],['甜味美思','45 ml'],['黑樱桃利口酒','7.5 ml'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'mezcal-margarita', name:'梅斯卡尔玛格丽特 Mezcal Margarita', category:'Liquor 参考', source:'Liquor / Mezcal', collection:'Modern Agave', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['梅斯卡尔','橙酒'], ingredients:['梅斯卡尔','君度','青柠汁','龙舌兰糖浆','盐'], flavorTags:['烟熏','酸爽','柑橘'], method:'摇合', recipe:[['梅斯卡尔','50 ml'],['君度','20 ml'],['青柠汁','25 ml'],['龙舌兰糖浆','10 ml']], steps:['杯口可做盐边。','所有原料加冰摇合。','滤入装冰杯。'] },
+        { id:'mudslide', name:'泥石流 Mudslide', category:'Liquor 参考', source:'Liquor / Dessert Cocktail', collection:'Creamy Drinks', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['伏特加','咖啡利口酒'], ingredients:['伏特加','咖啡利口酒','爱尔兰奶油利口酒','奶油'], flavorTags:['奶油','咖啡','甜点'], method:'摇合', recipe:[['伏特加','30 ml'],['咖啡利口酒','30 ml'],['爱尔兰奶油利口酒','30 ml'],['奶油','30 ml']], steps:['所有原料加冰摇合。','滤入装冰杯。','可撒巧克力粉。'] },
+        { id:'pegu-club', name:'佩古俱乐部 Pegu Club', category:'Liquor 参考', source:'Liquor / Classic Cocktail', collection:'Gin Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','橙酒'], ingredients:['金酒','君度','青柠汁','苦精','橙味苦精'], flavorTags:['柑橘','酸爽','干冽'], method:'摇合', recipe:[['金酒','60 ml'],['君度','22.5 ml'],['青柠汁','22.5 ml'],['苦精','1 滴'],['橙味苦精','1 滴']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','青柠皮装饰。'] },
+        { id:'pisco-sour', name:'皮斯科酸 Pisco Sour', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['皮斯科'], ingredients:['皮斯科','青柠汁','糖浆','蛋清','苦精'], flavorTags:['酸甜','柔滑','葡萄烈酒'], method:'摇合', recipe:[['皮斯科','60 ml'],['青柠汁','30 ml'],['糖浆','20 ml'],['蛋清','15 ml'],['苦精','2 滴']], steps:['除苦精外先干摇。','加冰再次摇合。','滤入杯中，苦精点缀。'] },
+        { id:'pornstar-martini', name:'色情明星马天尼 Porn Star Martini', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['香草伏特加','百香果利口酒'], ingredients:['香草伏特加','百香果利口酒','百香果泥','青柠汁','香槟'], flavorTags:['百香果','酸甜','气泡'], method:'摇合', recipe:[['香草伏特加','40 ml'],['百香果利口酒','15 ml'],['百香果泥','30 ml'],['青柠汁','10 ml'],['香槟','旁配']], steps:['除香槟外加冰摇合。','滤入冰镇杯。','香槟旁配。'] },
+        { id:'queen-park-swizzle', name:'皇后公园旋搅 Queen’s Park Swizzle', category:'Liquor 参考', source:'Liquor / Tropical', collection:'Rum Refreshers', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['黑朗姆'], ingredients:['黑朗姆','青柠汁','糖浆','薄荷','苦精'], flavorTags:['薄荷','朗姆','碎冰'], method:'搅拌', recipe:[['黑朗姆','60 ml'],['青柠汁','22.5 ml'],['糖浆','15 ml'],['薄荷','8 片'],['苦精','4 滴']], steps:['薄荷轻压。','加入原料和碎冰旋搅。','补碎冰，苦精点缀。'] },
+        { id:'revolver', name:'左轮 Revolver', category:'Liquor 参考', source:'Liquor / Modern Classic', collection:'Whiskey Classics', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['波本威士忌','咖啡利口酒'], ingredients:['波本威士忌','咖啡利口酒','橙味苦精'], flavorTags:['咖啡','木质','苦甜'], method:'搅拌', recipe:[['波本威士忌','60 ml'],['咖啡利口酒','15 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入古典杯。','橙皮扭香。'] },
+        { id:'rum-runner', name:'朗姆奔跑者 Rum Runner', category:'Liquor 参考', source:'Liquor / Tropical', collection:'Tiki & Tropical', difficulty:'中等', time:'5 分钟', glass:'飓风杯', bases:['浅色朗姆','黑朗姆'], ingredients:['浅色朗姆','黑朗姆','香蕉利口酒','黑莓利口酒','菠萝汁','青柠汁','石榴糖浆'], flavorTags:['热带','浆果','香蕉'], method:'摇合', recipe:[['浅色朗姆','30 ml'],['黑朗姆','30 ml'],['香蕉利口酒','15 ml'],['黑莓利口酒','15 ml'],['菠萝汁','30 ml'],['青柠汁','15 ml'],['石榴糖浆','10 ml']], steps:['所有原料加冰摇合。','倒入装冰杯。','水果装饰。'] },
+        { id:'sea-breeze', name:'海风 Sea Breeze', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['伏特加'], ingredients:['伏特加','蔓越莓汁','葡萄柚汁'], flavorTags:['蔓越莓','葡萄柚','清爽'], method:'兑和', recipe:[['伏特加','40 ml'],['蔓越莓汁','120 ml'],['葡萄柚汁','30 ml']], steps:['杯中加冰。','加入所有原料。','轻搅后用青柠装饰。'] },
+        { id:'sex-on-the-beach', name:'性感沙滩 Sex on the Beach', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['伏特加','桃味利口酒'], ingredients:['伏特加','桃味利口酒','橙汁','蔓越莓汁'], flavorTags:['果味','桃子','派对'], method:'兑和', recipe:[['伏特加','40 ml'],['桃味利口酒','20 ml'],['橙汁','40 ml'],['蔓越莓汁','40 ml']], steps:['高球杯加冰。','加入所有原料。','轻搅并装饰。'] },
+        { id:'sherry-cobbler', name:'雪莉科布勒 Sherry Cobbler', category:'Liquor 参考', source:'Liquor / Classic Cocktail', collection:'Sherry Classics', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['雪莉酒'], ingredients:['雪莉酒','糖浆','橙片','碎冰'], flavorTags:['低酒精','果香','清爽'], method:'摇合', recipe:[['雪莉酒','90 ml'],['糖浆','10 ml'],['橙片','2 片']], steps:['橙片和糖浆轻压。','加入雪莉酒和冰摇合。','倒入碎冰杯。'] },
+        { id:'tequila-sunrise', name:'龙舌兰日出 Tequila Sunrise', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['龙舌兰'], ingredients:['龙舌兰','橙汁','石榴糖浆'], flavorTags:['橙香','石榴','渐层'], method:'兑和', recipe:[['龙舌兰','45 ml'],['橙汁','90 ml'],['石榴糖浆','15 ml']], steps:['杯中加冰，加入龙舌兰和橙汁。','石榴糖浆缓慢沉底。','不搅拌出品。'] },
+        { id:'toronto', name:'多伦多 Toronto', category:'Liquor 参考', source:'Liquor / Whiskey Classic', collection:'Whiskey Classics', difficulty:'中等', time:'4 分钟', glass:'古典杯', bases:['黑麦威士忌','Fernet-Branca'], ingredients:['黑麦威士忌','Fernet-Branca','糖浆','苦精'], flavorTags:['草本','苦甜','木质'], method:'搅拌', recipe:[['黑麦威士忌','60 ml'],['Fernet-Branca','7.5 ml'],['糖浆','7.5 ml'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入古典杯。','橙皮装饰。'] },
+        { id:'vieux-carre', name:'老广场 Vieux Carre', category:'IBA经典', source:'IBA 官方配方', collection:'The Unforgettables', difficulty:'进阶', time:'5 分钟', glass:'古典杯', bases:['黑麦威士忌','干邑','甜味美思'], ingredients:['黑麦威士忌','干邑','甜味美思','Benedictine','Peychaud苦精','苦精'], flavorTags:['复杂','草本','木质'], method:'搅拌', recipe:[['黑麦威士忌','30 ml'],['干邑','30 ml'],['甜味美思','30 ml'],['Benedictine','1 茶匙'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入装大冰块古典杯。','柠檬皮装饰。'] },
+        { id:'ward-eight', name:'第八区 Ward Eight', category:'Liquor 参考', source:'Liquor / Whiskey Sour', collection:'Whiskey Sours', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌'], ingredients:['黑麦威士忌','柠檬汁','橙汁','石榴糖浆'], flavorTags:['酸甜','橙香','石榴'], method:'摇合', recipe:[['黑麦威士忌','60 ml'],['柠檬汁','15 ml'],['橙汁','15 ml'],['石榴糖浆','10 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','橙皮装饰。'] },
+        { id:'zombie', name:'僵尸 Zombie', category:'IBA经典', source:'IBA 官方配方', collection:'Contemporary Classics', difficulty:'进阶', time:'7 分钟', glass:'提基杯', bases:['浅色朗姆','金朗姆','黑朗姆'], ingredients:['浅色朗姆','金朗姆','黑朗姆','Falernum','柚子汁','青柠汁','肉桂糖浆','苦精'], flavorTags:['热带','高酒精','复杂'], method:'摇合', recipe:[['浅色朗姆','30 ml'],['金朗姆','30 ml'],['黑朗姆','30 ml'],['Falernum','15 ml'],['柚子汁','45 ml'],['青柠汁','20 ml'],['肉桂糖浆','15 ml']], steps:['所有原料加冰摇合。','倒入装碎冰提基杯。','薄荷和水果装饰。'] }
+      ];
+      cocktails.push(...libraryCocktails);
+      const regionalCocktails = [
+        { id:'havana-milktea', name:'哈瓦那大冰奶 Havana Milktea', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Taiwan Shop Recipes', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['陈年朗姆'], ingredients:['陈年朗姆','蜂蜜','鲜奶','冰块'], flavorTags:['奶香','蜂蜜','朗姆'], method:'兑和', recipe:[['陈年朗姆','45 ml'],['蜂蜜糖浆','15 ml'],['鲜奶','120 ml']], steps:['高球杯加满冰。','加入朗姆和蜂蜜糖浆。','鲜奶补满并轻搅。'] },
+        { id:'brazilian-margarita', name:'巴西玛格丽特 Brazilian Margarita', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Agave & Cachaca', difficulty:'中等', time:'5 分钟', glass:'玛格丽特杯', bases:['卡莎萨','龙舌兰','橙酒'], ingredients:['卡莎萨','龙舌兰','君度','柠檬汁','糖浆','玛格丽特苦精'], flavorTags:['酸爽','甘蔗','柑橘'], method:'摇合', recipe:[['卡莎萨','25 ml'],['龙舌兰','25 ml'],['君度','15 ml'],['柠檬汁','25 ml'],['糖浆','10 ml'],['玛格丽特苦精','2 滴']], steps:['杯口可做盐边。','所有原料加冰摇合。','双重过滤入杯。'] },
+        { id:'fernet-coke', name:'菲内特可乐 Fernet Coke', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Two Ingredient Drinks', difficulty:'简单', time:'2 分钟', glass:'高球杯', bases:['Fernet-Branca'], ingredients:['Fernet-Branca','可乐','柠檬角'], flavorTags:['草本','可乐','苦甜'], method:'兑和', recipe:[['Fernet-Branca','45 ml'],['可乐','适量补满'],['柠檬角','1 块']], steps:['杯中加冰。','加入 Fernet-Branca。','可乐补满并轻搅。'] },
+        { id:'paddington-bear-paw', name:'博灵顿熊掌 Paddington Bear Paw', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Gin & Vermouth', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','渣酿白兰地','干味美思'], ingredients:['金酒','渣酿白兰地','干味美思','橙味苦精'], flavorTags:['干冽','果核','酒感'], method:'搅拌', recipe:[['金酒','35 ml'],['渣酿白兰地','15 ml'],['干味美思','20 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮或橙皮扭香。'] },
+        { id:'pineapple-cake', name:'凤梨酥 Pineapple Cake', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Taiwan Dessert Drinks', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['蜜瓜利口酒'], ingredients:['蜜瓜利口酒','凤梨汁','柠檬汁','盐水'], flavorTags:['凤梨','甜点','清甜'], method:'摇合', recipe:[['蜜瓜利口酒','35 ml'],['凤梨汁','75 ml'],['柠檬汁','10 ml'],['盐水','2 滴']], steps:['所有原料加冰摇合。','滤入装冰杯。','凤梨片装饰。'] },
+        { id:'lg-iced-tea', name:'乌龙荔柚 LG Iced Tea', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Tea Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['荔枝利口酒'], ingredients:['荔枝利口酒','葡萄柚汁','乌龙茶','苏打水'], flavorTags:['荔枝','茶感','葡萄柚'], method:'兑和', recipe:[['荔枝利口酒','30 ml'],['葡萄柚汁','45 ml'],['乌龙茶','60 ml'],['苏打水','适量补满']], steps:['高球杯加冰。','加入荔枝利口酒、葡萄柚汁和乌龙茶。','苏打水补满。'] },
+        { id:'piscola', name:'皮斯可乐 Piscola', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Two Ingredient Drinks', difficulty:'简单', time:'2 分钟', glass:'高球杯', bases:['皮斯科'], ingredients:['皮斯科','可乐','柠檬角'], flavorTags:['可乐','葡萄烈酒','清爽'], method:'兑和', recipe:[['皮斯科','50 ml'],['可乐','适量补满'],['柠檬角','1 块']], steps:['杯中加冰。','加入皮斯科。','可乐补满，柠檬角装饰。'] },
+        { id:'rose-berry-iced-tea', name:'玫莓冰茶 Rose Berry Icetea', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Tea Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['白兰地'], ingredients:['白兰地','玫瑰柠檬汽水','莓果糖浆'], flavorTags:['玫瑰','莓果','气泡'], method:'兑和', recipe:[['白兰地','35 ml'],['莓果糖浆','10 ml'],['玫瑰柠檬汽水','适量补满']], steps:['杯中加冰。','加入白兰地和莓果糖浆。','玫瑰柠檬汽水补满。'] },
+        { id:'green-tea-offering', name:'献给神的绿茶 Green Tea Offering', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Tea Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['Benedictine'], ingredients:['Benedictine','绿茶','柠檬皮'], flavorTags:['草本','绿茶','低酒精'], method:'兑和', recipe:[['Benedictine','35 ml'],['冰绿茶','120 ml'],['柠檬皮','1 片']], steps:['杯中加冰。','加入 Benedictine。','绿茶补满并轻搅。'] },
+        { id:'matcha-milk', name:'抹茶鲜奶 Matcha Milk', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Taiwan Dessert Drinks', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['抹茶酒'], ingredients:['抹茶酒','鲜奶','糖浆'], flavorTags:['抹茶','奶香','甜点'], method:'兑和', recipe:[['抹茶酒','45 ml'],['鲜奶','120 ml'],['糖浆','5 ml']], steps:['杯中加冰。','加入抹茶酒和糖浆。','鲜奶补满并轻搅。'] },
+        { id:'denen-chuhai', name:'田苑酎ハイ Denen Chuhai', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Shochu Highballs', difficulty:'简单', time:'2 分钟', glass:'高球杯', bases:['烧酎'], ingredients:['烧酎','苏打水','柠檬片'], flavorTags:['清爽','气泡','米香'], method:'兑和', recipe:[['烧酎','45 ml'],['苏打水','适量补满'],['柠檬片','1 片']], steps:['高球杯加冰。','加入烧酎。','苏打水补满，柠檬片装饰。'] },
+        { id:'lychee-oolong', name:'荔枝乌龙 Lychee Oolong Tea', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Tea Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['荔枝利口酒'], ingredients:['荔枝利口酒','乌龙茶','柠檬汁'], flavorTags:['荔枝','乌龙','清爽'], method:'兑和', recipe:[['荔枝利口酒','35 ml'],['乌龙茶','120 ml'],['柠檬汁','5 ml']], steps:['杯中加冰。','加入荔枝利口酒和柠檬汁。','乌龙茶补满。'] },
+        { id:'peppercorn-adventure', name:'花椒惊艳 Peppercorn Adventure', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Craft Workshop Drinks', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['金酒'], ingredients:['金酒','青柠汁','蜂蜜糖浆','花椒酊','苏打水'], flavorTags:['麻香','酸甜','气泡'], method:'摇合', recipe:[['金酒','45 ml'],['青柠汁','20 ml'],['蜂蜜糖浆','15 ml'],['花椒酊','2 滴'],['苏打水','适量补满']], steps:['除苏打水外加冰摇合。','滤入装冰杯。','苏打水补满。'] },
+        { id:'reiki-shochu', name:'灵气烧酎 Reiki Shochu', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Shochu Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['烧酎'], ingredients:['烧酎','柚子汁','紫苏糖浆','苏打水'], flavorTags:['柚子','紫苏','清爽'], method:'兑和', recipe:[['烧酎','45 ml'],['柚子汁','15 ml'],['紫苏糖浆','10 ml'],['苏打水','适量补满']], steps:['杯中加冰。','加入烧酎、柚子汁和糖浆。','苏打水补满。'] },
+        { id:'klein-blue-cocktail', name:'蓝色鸡尾酒 Klein Blue Cocktail', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Blue Theme Drinks', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['伏特加','蓝橙酒'], ingredients:['伏特加','蓝橙酒','柠檬汁','椰子水'], flavorTags:['蓝橙','酸甜','清亮'], method:'摇合', recipe:[['伏特加','40 ml'],['蓝橙酒','20 ml'],['柠檬汁','15 ml'],['椰子水','30 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'sake-silk', name:'清酒丝绸 Sake Silk', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Sake Cocktails', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['清酒','金酒'], ingredients:['清酒','金酒','白桃汁','柠檬汁','糖浆'], flavorTags:['清酒','白桃','丝滑'], method:'摇合', recipe:[['清酒','45 ml'],['金酒','20 ml'],['白桃汁','30 ml'],['柠檬汁','10 ml'],['糖浆','5 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','白桃片装饰。'] },
+        { id:'gin-journey', name:'Gin 酒旅程 Gin Journey', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Gin Education', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['金酒'], ingredients:['金酒','接骨木花利口酒','青柠汁','黄瓜','汤力水'], flavorTags:['花香','黄瓜','汤力'], method:'兑和', recipe:[['金酒','45 ml'],['接骨木花利口酒','10 ml'],['青柠汁','10 ml'],['黄瓜片','3 片'],['汤力水','适量补满']], steps:['黄瓜轻拍后入杯。','加入金酒、利口酒和青柠汁。','汤力水补满。'] },
+        { id:'agarwood-craft', name:'沉香木调酒 Agarwood Craft', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Aromatic Craft', difficulty:'进阶', time:'6 分钟', glass:'古典杯', bases:['陈年朗姆','干邑'], ingredients:['陈年朗姆','干邑','枫糖浆','苦精','沉香木烟熏'], flavorTags:['木质','烟熏','浓烈'], method:'搅拌', recipe:[['陈年朗姆','35 ml'],['干邑','20 ml'],['枫糖浆','7.5 ml'],['苦精','2 滴'],['沉香木烟熏','1 次']], steps:['液体原料加冰搅拌。','滤入大冰块古典杯。','以沉香木烟熏罩香。'] },
+        { id:'floral-note', name:'花韵微醺笔记 Floral Note', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Floral Craft', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','玫瑰糖浆','柠檬汁','荔枝汁','蛋清'], flavorTags:['花香','荔枝','柔滑'], method:'摇合', recipe:[['金酒','40 ml'],['荔枝汁','30 ml'],['柠檬汁','15 ml'],['玫瑰糖浆','10 ml'],['蛋清','15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入杯。'] },
+        { id:'passion-play', name:'热情果玩味 Passion Play', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Mocktail Friendly', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['伏特加'], ingredients:['伏特加','百香果泥','青柠汁','香草糖浆','苏打水'], flavorTags:['百香果','酸甜','气泡'], method:'摇合', recipe:[['伏特加','40 ml'],['百香果泥','30 ml'],['青柠汁','15 ml'],['香草糖浆','10 ml'],['苏打水','适量补满']], steps:['除苏打水外加冰摇合。','倒入装冰高球杯。','苏打水补满。'] }
+      ];
+      cocktails.push(...regionalCocktails);
+      const sourceExpandedCocktails = [
+        { id:'airmail', name:'航空邮件 Air Mail', category:'Imbibe 参考', source:'Imbibe / Sparkling Classic', collection:'Rum & Sparkling', difficulty:'中等', time:'5 分钟', glass:'香槟杯', bases:['白朗姆','香槟'], ingredients:['白朗姆','青柠汁','蜂蜜糖浆','香槟'], flavorTags:['气泡','蜂蜜','酸甜'], method:'摇合', recipe:[['白朗姆','45 ml'],['青柠汁','15 ml'],['蜂蜜糖浆','15 ml'],['香槟','适量补满']], steps:['除香槟外原料加冰摇合。','滤入香槟杯。','香槟补满。'] },
+        { id:'angel-face', name:'天使之面 Angel Face', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Equal Parts Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','苹果白兰地','杏子白兰地'], ingredients:['金酒','苹果白兰地','杏子白兰地'], flavorTags:['果香','酒感','干冽'], method:'摇合', recipe:[['金酒','30 ml'],['苹果白兰地','30 ml'],['杏子白兰地','30 ml']], steps:['所有原料加冰摇合。','滤入冰镇鸡尾酒杯。','无装饰或苹果片装饰。'] },
+        { id:'bamboo', name:'竹 Bamboo', category:'Difford 参考', source:'Difford’s Guide / Sherry Classic', collection:'Sherry Classics', difficulty:'简单', time:'3 分钟', glass:'鸡尾酒杯', bases:['干雪莉','干味美思'], ingredients:['干雪莉','干味美思','橙味苦精','苦精'], flavorTags:['低酒精','干冽','坚果'], method:'搅拌', recipe:[['干雪莉','45 ml'],['干味美思','45 ml'],['橙味苦精','1 滴'],['苦精','1 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'batanga', name:'巴坦加 Batanga', category:'Imbibe 参考', source:'Imbibe / Tall Drinks', collection:'Agave Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['龙舌兰'], ingredients:['龙舌兰','青柠汁','可乐','盐'], flavorTags:['可乐','青柠','清爽'], method:'兑和', recipe:[['龙舌兰','50 ml'],['青柠汁','10 ml'],['可乐','适量补满'],['盐','少量']], steps:['杯口或杯中加入少量盐。','加冰后倒入龙舌兰和青柠汁。','可乐补满并轻搅。'] },
+        { id:'bijou', name:'宝石 Bijou', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Herbal Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','甜味美思','绿 Chartreuse'], ingredients:['金酒','甜味美思','绿 Chartreuse','橙味苦精'], flavorTags:['草本','苦甜','浓烈'], method:'搅拌', recipe:[['金酒','30 ml'],['甜味美思','30 ml'],['绿 Chartreuse','30 ml'],['橙味苦精','1 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','樱桃或柠檬皮装饰。'] },
+        { id:'black-velvet', name:'黑天鹅绒 Black Velvet', category:'Difford 参考', source:'Difford’s Guide / Beer Cocktail', collection:'Beer & Sparkling', difficulty:'简单', time:'2 分钟', glass:'香槟杯', bases:['黑啤','香槟'], ingredients:['黑啤','香槟'], flavorTags:['麦芽','气泡','低酒精'], method:'兑和', recipe:[['黑啤','60 ml'],['香槟','60 ml']], steps:['杯中先倒入冰镇黑啤。','缓慢加入香槟。','不搅拌出品。'] },
+        { id:'blood-and-sand', name:'血与沙 Blood and Sand', category:'Difford 参考', source:'Difford’s Guide / Scotch Classic', collection:'Whisky Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['苏格兰威士忌','甜味美思','樱桃白兰地'], ingredients:['苏格兰威士忌','甜味美思','樱桃白兰地','橙汁'], flavorTags:['橙香','樱桃','柔和'], method:'摇合', recipe:[['苏格兰威士忌','22.5 ml'],['甜味美思','22.5 ml'],['樱桃白兰地','22.5 ml'],['橙汁','22.5 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','橙皮装饰。'] },
+        { id:'brandy-alexander', name:'白兰地亚历山大 Brandy Alexander', category:'Difford 参考', source:'Difford’s Guide / Dessert Classic', collection:'Creamy Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['干邑','可可利口酒'], ingredients:['干邑','可可利口酒','奶油','肉豆蔻'], flavorTags:['奶油','可可','甜点'], method:'摇合', recipe:[['干邑','30 ml'],['深色可可利口酒','30 ml'],['奶油','30 ml'],['肉豆蔻','少量']], steps:['液体原料加冰摇合。','滤入冰镇杯。','现磨肉豆蔻点缀。'] },
+        { id:'brooklyn', name:'布鲁克林 Brooklyn', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Whiskey Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','干味美思'], ingredients:['黑麦威士忌','干味美思','黑樱桃利口酒','Amer Picon'], flavorTags:['苦甜','樱桃','木质'], method:'搅拌', recipe:[['黑麦威士忌','60 ml'],['干味美思','20 ml'],['黑樱桃利口酒','7.5 ml'],['Amer Picon','7.5 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'brown-derby', name:'棕色德比 Brown Derby', category:'Difford 参考', source:'Difford’s Guide / Whiskey Sour', collection:'Whiskey Sours', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['波本威士忌'], ingredients:['波本威士忌','葡萄柚汁','蜂蜜糖浆'], flavorTags:['葡萄柚','蜂蜜','酸甜'], method:'摇合', recipe:[['波本威士忌','45 ml'],['葡萄柚汁','30 ml'],['蜂蜜糖浆','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','葡萄柚皮装饰。'] },
+        { id:'cable-car', name:'缆车 Cable Car', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Spiced Sours', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['香料朗姆','橙酒'], ingredients:['香料朗姆','橙酒','柠檬汁','糖边','肉桂'], flavorTags:['香料','柑橘','酸甜'], method:'摇合', recipe:[['香料朗姆','45 ml'],['橙酒','20 ml'],['柠檬汁','20 ml'],['糖边','可选']], steps:['杯口做糖边。','原料加冰摇合。','滤入杯中，肉桂点缀。'] },
+        { id:'caribeno', name:'加勒比诺 Caribeño', category:'Imbibe 参考', source:'Imbibe / Tall Drinks', collection:'Rum Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['白朗姆'], ingredients:['白朗姆','青柠汁','糖浆','椰子水'], flavorTags:['椰子水','酸甜','清爽'], method:'兑和', recipe:[['白朗姆','45 ml'],['青柠汁','20 ml'],['糖浆','10 ml'],['椰子水','适量补满']], steps:['高球杯加冰。','加入朗姆、青柠汁和糖浆。','椰子水补满。'] },
+        { id:'chrysanthemum', name:'菊花 Chrysanthemum', category:'Difford 参考', source:'Difford’s Guide / Vermouth Classic', collection:'Vermouth Classics', difficulty:'简单', time:'3 分钟', glass:'鸡尾酒杯', bases:['干味美思','Benedictine'], ingredients:['干味美思','Benedictine','苦艾酒'], flavorTags:['草本','低酒精','干冽'], method:'搅拌', recipe:[['干味美思','60 ml'],['Benedictine','15 ml'],['苦艾酒','5 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','橙皮装饰。'] },
+        { id:'clover-leaf', name:'三叶草叶 Clover Leaf', category:'Difford 参考', source:'Difford’s Guide / Gin Sour', collection:'Gin Sours', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','柠檬汁','覆盆子糖浆','蛋清','薄荷'], flavorTags:['莓果','薄荷','柔滑'], method:'摇合', recipe:[['金酒','45 ml'],['柠檬汁','20 ml'],['覆盆子糖浆','15 ml'],['蛋清','15 ml'],['薄荷','1 片']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入杯，薄荷装饰。'] },
+        { id:'de-la-louisiane', name:'路易斯安那 De La Louisiane', category:'Imbibe 参考', source:'Imbibe / New Orleans Classic', collection:'New Orleans', difficulty:'进阶', time:'5 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','甜味美思','Benedictine'], ingredients:['黑麦威士忌','甜味美思','Benedictine','苦艾酒','Peychaud苦精'], flavorTags:['草本','木质','复杂'], method:'搅拌', recipe:[['黑麦威士忌','45 ml'],['甜味美思','20 ml'],['Benedictine','15 ml'],['苦艾酒','5 ml'],['Peychaud苦精','3 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','樱桃装饰。'] },
+        { id:'death-in-the-afternoon', name:'午后之死 Death in the Afternoon', category:'Difford 参考', source:'Difford’s Guide / Sparkling Classic', collection:'Absinthe & Sparkling', difficulty:'简单', time:'2 分钟', glass:'香槟杯', bases:['苦艾酒','香槟'], ingredients:['苦艾酒','香槟'], flavorTags:['草本','气泡','强烈'], method:'兑和', recipe:[['苦艾酒','15 ml'],['香槟','适量补满']], steps:['杯中倒入苦艾酒。','缓慢加入香槟。','不搅拌出品。'] },
+        { id:'derby', name:'德比 Derby', category:'Difford 参考', source:'Difford’s Guide / Gin Classic', collection:'Gin Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','桃味苦精','薄荷'], flavorTags:['薄荷','干冽','清爽'], method:'搅拌', recipe:[['金酒','60 ml'],['桃味苦精','2 滴'],['薄荷','1 片']], steps:['金酒和苦精加冰搅拌。','滤入冰镇杯。','薄荷叶装饰。'] },
+        { id:'eastside', name:'东区 Eastside', category:'Imbibe 参考', source:'Imbibe / Modern Gin', collection:'Gin Refreshers', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','青柠汁','糖浆','黄瓜','薄荷'], flavorTags:['黄瓜','薄荷','酸甜'], method:'摇合', recipe:[['金酒','60 ml'],['青柠汁','22.5 ml'],['糖浆','15 ml'],['黄瓜片','3 片'],['薄荷','6 片']], steps:['黄瓜和薄荷轻拍。','加入原料加冰摇合。','双重过滤入杯。'] },
+        { id:'el-presidente', name:'总统 El Presidente', category:'Difford 参考', source:'Difford’s Guide / Rum Classic', collection:'Rum Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['白朗姆','干味美思'], ingredients:['白朗姆','干味美思','橙酒','石榴糖浆'], flavorTags:['柑橘','石榴','干冽'], method:'搅拌', recipe:[['白朗姆','45 ml'],['干味美思','20 ml'],['橙酒','10 ml'],['石榴糖浆','5 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','橙皮装饰。'] },
+        { id:'final-ward', name:'最后病房 Final Ward', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Last Word Variations', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','绿 Chartreuse'], ingredients:['黑麦威士忌','绿 Chartreuse','黑樱桃利口酒','柠檬汁'], flavorTags:['草本','樱桃','酸甜'], method:'摇合', recipe:[['黑麦威士忌','22.5 ml'],['绿 Chartreuse','22.5 ml'],['黑樱桃利口酒','22.5 ml'],['柠檬汁','22.5 ml']], steps:['所有原料等量加冰摇合。','双重过滤入冰镇杯。','无装饰或樱桃装饰。'] },
+        { id:'fog-cutter', name:'雾切 Fog Cutter', category:'Difford 参考', source:'Difford’s Guide / Tiki', collection:'Tiki & Tropical', difficulty:'进阶', time:'6 分钟', glass:'提基杯', bases:['白朗姆','金酒','干邑','雪莉酒'], ingredients:['白朗姆','金酒','干邑','柠檬汁','橙汁','杏仁糖浆','雪莉酒'], flavorTags:['热带','杏仁','复杂'], method:'摇合', recipe:[['白朗姆','45 ml'],['金酒','15 ml'],['干邑','15 ml'],['柠檬汁','30 ml'],['橙汁','30 ml'],['杏仁糖浆','15 ml'],['雪莉酒','15 ml 浮顶']], steps:['除雪莉外原料加冰摇合。','倒入装碎冰杯。','雪莉浮顶。'] },
+        { id:'honeymoon', name:'蜜月 Honeymoon', category:'Difford 参考', source:'Difford’s Guide / Apple Brandy', collection:'Apple Brandy Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['苹果白兰地','Benedictine'], ingredients:['苹果白兰地','Benedictine','橙酒','柠檬汁'], flavorTags:['苹果','草本','酸甜'], method:'摇合', recipe:[['苹果白兰地','45 ml'],['Benedictine','15 ml'],['橙酒','15 ml'],['柠檬汁','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'hotel-nacional', name:'国家酒店 Hotel Nacional', category:'Imbibe 参考', source:'Imbibe / Cuban Classic', collection:'Rum Classics', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['白朗姆','杏子白兰地'], ingredients:['白朗姆','杏子白兰地','菠萝汁','青柠汁','糖浆'], flavorTags:['菠萝','杏子','酸甜'], method:'摇合', recipe:[['白朗姆','45 ml'],['杏子白兰地','15 ml'],['菠萝汁','30 ml'],['青柠汁','15 ml'],['糖浆','5 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','菠萝片装饰。'] },
+        { id:'jack-rose', name:'杰克玫瑰 Jack Rose', category:'Difford 参考', source:'Difford’s Guide / Apple Brandy', collection:'Apple Brandy Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['苹果白兰地'], ingredients:['苹果白兰地','柠檬汁','石榴糖浆'], flavorTags:['苹果','石榴','酸甜'], method:'摇合', recipe:[['苹果白兰地','60 ml'],['柠檬汁','22.5 ml'],['石榴糖浆','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'la-perla', name:'珍珠 La Perla', category:'Difford 参考', source:'Difford’s Guide / Agave Modern', collection:'Modern Agave', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['Reposado 龙舌兰','Manzanilla 雪莉'], ingredients:['Reposado 龙舌兰','Manzanilla 雪莉','梨利口酒'], flavorTags:['梨香','雪莉','龙舌兰'], method:'搅拌', recipe:[['Reposado 龙舌兰','45 ml'],['Manzanilla 雪莉','45 ml'],['梨利口酒','15 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'millionaire', name:'百万富翁 Millionaire', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Classic Sours', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','橙酒'], ingredients:['黑麦威士忌','君度','石榴糖浆','蛋清'], flavorTags:['石榴','柔滑','酒感'], method:'摇合', recipe:[['黑麦威士忌','45 ml'],['君度','15 ml'],['石榴糖浆','15 ml'],['蛋清','15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入杯。'] },
+        { id:'missionarys-downfall', name:'传教士陨落 Missionary’s Downfall', category:'Difford 参考', source:'Difford’s Guide / Tiki', collection:'Tiki & Tropical', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['白朗姆'], ingredients:['白朗姆','桃味利口酒','蜂蜜糖浆','青柠汁','菠萝','薄荷'], flavorTags:['菠萝','薄荷','热带'], method:'搅打', recipe:[['白朗姆','45 ml'],['桃味利口酒','15 ml'],['蜂蜜糖浆','15 ml'],['青柠汁','20 ml'],['菠萝','3 块'],['薄荷','8 片']], steps:['所有原料加碎冰搅打。','倒入杯中。','薄荷装饰。'] },
+        { id:'nuclear-daiquiri', name:'核能代基里 Nuclear Daiquiri', category:'Difford 参考', source:'Difford’s Guide / Modern Classic', collection:'Rum & Herbal', difficulty:'进阶', time:'4 分钟', glass:'鸡尾酒杯', bases:['过proof朗姆','绿 Chartreuse'], ingredients:['过proof朗姆','绿 Chartreuse','Falernum','青柠汁'], flavorTags:['草本','高酒精','酸爽'], method:'摇合', recipe:[['过proof朗姆','30 ml'],['绿 Chartreuse','20 ml'],['Falernum','15 ml'],['青柠汁','20 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','无装饰出品。'] },
+        { id:'oaxaca-old-fashioned', name:'瓦哈卡古典 Oaxaca Old Fashioned', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Modern Agave', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['Reposado 龙舌兰','梅斯卡尔'], ingredients:['Reposado 龙舌兰','梅斯卡尔','龙舌兰糖浆','苦精','橙皮'], flavorTags:['烟熏','木质','苦甜'], method:'搅拌', recipe:[['Reposado 龙舌兰','45 ml'],['梅斯卡尔','15 ml'],['龙舌兰糖浆','7.5 ml'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入大冰块古典杯。','橙皮扭香。'] },
+        { id:'old-pal', name:'老朋友 Old Pal', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Whiskey Bitter', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','金巴利','干味美思'], ingredients:['黑麦威士忌','金巴利','干味美思'], flavorTags:['苦甜','干冽','木质'], method:'搅拌', recipe:[['黑麦威士忌','30 ml'],['金巴利','30 ml'],['干味美思','30 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'remember-the-maine', name:'铭记缅因 Remember the Maine', category:'Imbibe 参考', source:'Imbibe / Classic', collection:'Whiskey Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','甜味美思'], ingredients:['黑麦威士忌','甜味美思','樱桃白兰地','苦艾酒'], flavorTags:['樱桃','草本','木质'], method:'搅拌', recipe:[['黑麦威士忌','60 ml'],['甜味美思','20 ml'],['樱桃白兰地','10 ml'],['苦艾酒','5 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','樱桃装饰。'] },
+        { id:'scofflaw', name:'违法者 Scofflaw', category:'Difford 参考', source:'Difford’s Guide / Prohibition Classic', collection:'Whiskey Sours', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','干味美思'], ingredients:['黑麦威士忌','干味美思','柠檬汁','石榴糖浆','橙味苦精'], flavorTags:['酸甜','石榴','干冽'], method:'摇合', recipe:[['黑麦威士忌','45 ml'],['干味美思','20 ml'],['柠檬汁','20 ml'],['石榴糖浆','10 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'siesta', name:'午睡 Siesta', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Agave Bitter', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['龙舌兰','金巴利'], ingredients:['龙舌兰','金巴利','葡萄柚汁','青柠汁','糖浆'], flavorTags:['葡萄柚','苦甜','酸爽'], method:'摇合', recipe:[['龙舌兰','45 ml'],['金巴利','15 ml'],['葡萄柚汁','15 ml'],['青柠汁','15 ml'],['糖浆','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','葡萄柚皮装饰。'] },
+        { id:'stinger', name:'毒刺 Stinger', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Brandy Classics', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['干邑','薄荷利口酒'], ingredients:['干邑','白薄荷利口酒'], flavorTags:['薄荷','浓烈','清凉'], method:'搅拌', recipe:[['干邑','60 ml'],['白薄荷利口酒','20 ml']], steps:['所有原料加冰搅拌。','滤入古典杯或冰镇杯。','无装饰出品。'] },
+        { id:'suffering-bastard', name:'受苦混蛋 Suffering Bastard', category:'Difford 参考', source:'Difford’s Guide / Tiki', collection:'Tiki & Highballs', difficulty:'中等', time:'4 分钟', glass:'高球杯', bases:['金酒','干邑'], ingredients:['金酒','干邑','青柠汁','姜汁啤酒','苦精'], flavorTags:['辛辣','气泡','酒感'], method:'兑和', recipe:[['金酒','30 ml'],['干邑','30 ml'],['青柠汁','15 ml'],['苦精','2 滴'],['姜汁啤酒','适量补满']], steps:['杯中加冰。','加入酒、青柠汁和苦精。','姜汁啤酒补满。'] },
+        { id:'tailspin', name:'尾旋 Tailspin', category:'Difford 参考', source:'Difford’s Guide / Herbal Classic', collection:'Gin & Herbal', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','甜味美思','绿 Chartreuse'], ingredients:['金酒','甜味美思','绿 Chartreuse','金巴利'], flavorTags:['草本','苦甜','浓烈'], method:'搅拌', recipe:[['金酒','30 ml'],['甜味美思','30 ml'],['绿 Chartreuse','30 ml'],['金巴利','5 ml 润杯']], steps:['用金巴利润杯。','其余原料加冰搅拌。','滤入杯中。'] },
+        { id:'trinidad-sour', name:'特立尼达酸 Trinidad Sour', category:'Difford 参考', source:'Difford’s Guide / Modern Classic', collection:'Bitters Forward', difficulty:'进阶', time:'5 分钟', glass:'鸡尾酒杯', bases:['安格斯图拉苦精','黑麦威士忌'], ingredients:['安格斯图拉苦精','杏仁糖浆','柠檬汁','黑麦威士忌'], flavorTags:['苦精','坚果','酸甜'], method:'摇合', recipe:[['安格斯图拉苦精','30 ml'],['杏仁糖浆','30 ml'],['柠檬汁','22.5 ml'],['黑麦威士忌','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','无装饰出品。'] },
+        { id:'twelve-mile-limit', name:'十二英里限制 Twelve Mile Limit', category:'Difford 参考', source:'Difford’s Guide / Prohibition Classic', collection:'Rum & Whiskey', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['白朗姆','黑麦威士忌','白兰地'], ingredients:['白朗姆','黑麦威士忌','白兰地','石榴糖浆','柠檬汁'], flavorTags:['酸甜','浓烈','石榴'], method:'摇合', recipe:[['白朗姆','30 ml'],['黑麦威士忌','15 ml'],['白兰地','15 ml'],['石榴糖浆','15 ml'],['柠檬汁','20 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] }
+      ];
+      cocktails.push(...sourceExpandedCocktails);
+      const volumeCocktails = [
+        { id:'abbey', name:'修道院 Abbey', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Gin Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','橙汁','甜味美思','橙味苦精'], flavorTags:['橙香','干冽','清爽'], method:'摇合', recipe:[['金酒','45 ml'],['橙汁','20 ml'],['甜味美思','20 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','橙皮装饰。'] },
+        { id:'acapulco', name:'阿卡普尔科 Acapulco', category:'Liquor 参考', source:'Liquor / Tropical', collection:'Rum & Tequila', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['白朗姆','龙舌兰'], ingredients:['白朗姆','龙舌兰','菠萝汁','葡萄柚汁','椰子奶油'], flavorTags:['热带','椰香','果味'], method:'摇合', recipe:[['白朗姆','30 ml'],['龙舌兰','30 ml'],['菠萝汁','30 ml'],['葡萄柚汁','30 ml'],['椰子奶油','15 ml']], steps:['所有原料加冰摇合。','滤入冰镇杯。','菠萝片装饰。'] },
+        { id:'alaska', name:'阿拉斯加 Alaska', category:'Difford 参考', source:'Difford’s Guide / Herbal Classic', collection:'Gin & Herbal', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','黄 Chartreuse'], ingredients:['金酒','黄 Chartreuse','橙味苦精'], flavorTags:['草本','干冽','浓烈'], method:'搅拌', recipe:[['金酒','60 ml'],['黄 Chartreuse','20 ml'],['橙味苦精','1 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'algonquin', name:'阿尔冈昆 Algonquin', category:'Difford 参考', source:'Difford’s Guide / Whiskey Classic', collection:'Whiskey Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','干味美思'], ingredients:['黑麦威士忌','干味美思','菠萝汁'], flavorTags:['菠萝','干冽','木质'], method:'摇合', recipe:[['黑麦威士忌','45 ml'],['干味美思','20 ml'],['菠萝汁','20 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','无装饰或菠萝片装饰。'] },
+        { id:'applejack-rabbit', name:'苹果杰克兔 Applejack Rabbit', category:'Difford 参考', source:'Difford’s Guide / Apple Brandy', collection:'Apple Brandy Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['苹果白兰地'], ingredients:['苹果白兰地','橙汁','柠檬汁','枫糖浆'], flavorTags:['苹果','柑橘','枫糖'], method:'摇合', recipe:[['苹果白兰地','45 ml'],['橙汁','20 ml'],['柠檬汁','20 ml'],['枫糖浆','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','橙皮装饰。'] },
+        { id:'army-navy', name:'陆海军 Army & Navy', category:'Difford 参考', source:'Difford’s Guide / Gin Sour', collection:'Gin Sours', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','柠檬汁','杏仁糖浆','苦精'], flavorTags:['坚果','酸甜','金酒'], method:'摇合', recipe:[['金酒','60 ml'],['柠檬汁','22.5 ml'],['杏仁糖浆','15 ml'],['苦精','1 滴']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'barracuda', name:'梭鱼 Barracuda', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['金朗姆','香槟'], ingredients:['金朗姆','Galliano','菠萝汁','青柠汁','香槟'], flavorTags:['菠萝','香草','气泡'], method:'摇合', recipe:[['金朗姆','45 ml'],['Galliano','15 ml'],['菠萝汁','60 ml'],['青柠汁','15 ml'],['香槟','适量补满']], steps:['除香槟外加冰摇合。','滤入装冰杯。','香槟补满。'] },
+        { id:'bobby-burns', name:'鲍比彭斯 Bobby Burns', category:'Difford 参考', source:'Difford’s Guide / Scotch Classic', collection:'Whisky Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['苏格兰威士忌','甜味美思'], ingredients:['苏格兰威士忌','甜味美思','Benedictine'], flavorTags:['草本','苦甜','木质'], method:'搅拌', recipe:[['苏格兰威士忌','45 ml'],['甜味美思','25 ml'],['Benedictine','7.5 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'boomerang', name:'回旋镖 Boomerang', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Vermouth Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['干邑','甜味美思'], ingredients:['干邑','甜味美思','黑樱桃利口酒','苦精'], flavorTags:['樱桃','苦甜','酒感'], method:'搅拌', recipe:[['干邑','45 ml'],['甜味美思','20 ml'],['黑樱桃利口酒','10 ml'],['苦精','1 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','樱桃装饰。'] },
+        { id:'bourbon-renewal', name:'波本重生 Bourbon Renewal', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Whiskey Sours', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['波本威士忌','黑加仑利口酒'], ingredients:['波本威士忌','柠檬汁','黑加仑利口酒','糖浆','苦精'], flavorTags:['黑加仑','酸甜','木质'], method:'摇合', recipe:[['波本威士忌','60 ml'],['柠檬汁','30 ml'],['黑加仑利口酒','15 ml'],['糖浆','15 ml'],['苦精','1 滴']], steps:['所有原料加冰摇合。','滤入装冰古典杯。','柠檬片装饰。'] },
+        { id:'caipiroska', name:'伏特加卡琵莉亚 Caipiroska', category:'Cocktail Club 参考', source:'Cocktail Club / Easy Cocktail', collection:'Vodka Refreshers', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['伏特加'], ingredients:['伏特加','青柠','白砂糖'], flavorTags:['青柠','清爽','酸甜'], method:'捣压', recipe:[['伏特加','60 ml'],['青柠','半颗切块'],['白砂糖','2 茶匙']], steps:['青柠和糖在杯中捣压。','加入碎冰和伏特加。','轻搅后出品。'] },
+        { id:'camerons-kick', name:'卡梅伦之踢 Cameron’s Kick', category:'Difford 参考', source:'Difford’s Guide / Whiskey Sour', collection:'Whisky Sours', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['苏格兰威士忌','爱尔兰威士忌'], ingredients:['苏格兰威士忌','爱尔兰威士忌','柠檬汁','杏仁糖浆'], flavorTags:['坚果','酸甜','威士忌'], method:'摇合', recipe:[['苏格兰威士忌','30 ml'],['爱尔兰威士忌','30 ml'],['柠檬汁','22.5 ml'],['杏仁糖浆','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','橙皮装饰。'] },
+        { id:'charlie-chaplin', name:'卓别林 Charlie Chaplin', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Apricot Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['杏子白兰地','黑刺李金酒'], ingredients:['杏子白兰地','黑刺李金酒','青柠汁'], flavorTags:['杏子','浆果','酸甜'], method:'摇合', recipe:[['杏子白兰地','30 ml'],['黑刺李金酒','30 ml'],['青柠汁','30 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','青柠皮装饰。'] },
+        { id:'cooperstown', name:'库珀斯敦 Cooperstown', category:'Difford 参考', source:'Difford’s Guide / Martini Family', collection:'Martini Variations', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','干味美思','甜味美思'], ingredients:['金酒','干味美思','甜味美思','橙味苦精','薄荷'], flavorTags:['干冽','草本','薄荷'], method:'搅拌', recipe:[['金酒','60 ml'],['干味美思','10 ml'],['甜味美思','10 ml'],['橙味苦精','1 滴'],['薄荷','1 片']], steps:['液体原料加冰搅拌。','滤入冰镇杯。','薄荷叶装饰。'] },
+        { id:'corn-n-oil', name:'玉米与油 Corn ’n’ Oil', category:'Imbibe 参考', source:'Imbibe / Rum Classic', collection:'Rum Classics', difficulty:'简单', time:'3 分钟', glass:'古典杯', bases:['黑朗姆'], ingredients:['黑朗姆','Falernum','苦精','青柠角'], flavorTags:['香料','朗姆','青柠'], method:'兑和', recipe:[['黑朗姆','60 ml'],['Falernum','15 ml'],['苦精','2 滴'],['青柠角','1 块']], steps:['杯中加冰。','加入原料轻搅。','青柠角挤入后投入。'] },
+        { id:'daisy-de-santiago', name:'圣地亚哥雏菊 Daisy de Santiago', category:'Difford 参考', source:'Difford’s Guide / Cuban Classic', collection:'Rum Classics', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['白朗姆','黄 Chartreuse'], ingredients:['白朗姆','青柠汁','糖浆','黄 Chartreuse','苏打水'], flavorTags:['草本','酸甜','气泡'], method:'摇合', recipe:[['白朗姆','45 ml'],['青柠汁','20 ml'],['糖浆','10 ml'],['黄 Chartreuse','10 ml'],['苏打水','少量']], steps:['除苏打水外原料加冰摇合。','滤入杯中。','少量苏打水提亮。'] },
+        { id:'dempsey', name:'邓普西 Dempsey', category:'Difford 参考', source:'Difford’s Guide / Gin Classic', collection:'Gin Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','苹果白兰地'], ingredients:['金酒','苹果白兰地','石榴糖浆','柠檬汁','苦艾酒'], flavorTags:['苹果','石榴','干冽'], method:'摇合', recipe:[['金酒','35 ml'],['苹果白兰地','20 ml'],['柠檬汁','15 ml'],['石榴糖浆','10 ml'],['苦艾酒','5 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'diamondback', name:'响尾蛇 Diamondback', category:'Difford 参考', source:'Difford’s Guide / Whiskey Classic', collection:'Whiskey Classics', difficulty:'进阶', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','苹果白兰地','绿 Chartreuse'], ingredients:['黑麦威士忌','苹果白兰地','绿 Chartreuse'], flavorTags:['草本','苹果','浓烈'], method:'搅拌', recipe:[['黑麦威士忌','45 ml'],['苹果白兰地','20 ml'],['绿 Chartreuse','20 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','无装饰出品。'] },
+        { id:'doctor-funk', name:'芬克医生 Doctor Funk', category:'Difford 参考', source:'Difford’s Guide / Tiki', collection:'Tiki & Tropical', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['黑朗姆','苦艾酒'], ingredients:['黑朗姆','青柠汁','石榴糖浆','苦艾酒','苏打水'], flavorTags:['热带','草本','气泡'], method:'摇合', recipe:[['黑朗姆','45 ml'],['青柠汁','20 ml'],['石榴糖浆','15 ml'],['苦艾酒','5 ml'],['苏打水','适量补满']], steps:['除苏打水外加冰摇合。','倒入装冰杯。','苏打水补满。'] },
+        { id:'east-india', name:'东印度 East India', category:'Difford 参考', source:'Difford’s Guide / Brandy Classic', collection:'Brandy Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['干邑','橙酒'], ingredients:['干邑','橙酒','菠萝汁','黑樱桃利口酒','苦精'], flavorTags:['菠萝','樱桃','酒感'], method:'摇合', recipe:[['干邑','45 ml'],['橙酒','10 ml'],['菠萝汁','15 ml'],['黑樱桃利口酒','5 ml'],['苦精','1 滴']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','橙皮装饰。'] },
+        { id:'east-village-athletic-club', name:'东村运动俱乐部 East Village Athletic Club', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Agave Modern', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['龙舌兰','黄 Chartreuse'], ingredients:['龙舌兰','黄 Chartreuse','柠檬汁','石榴糖浆'], flavorTags:['草本','石榴','酸甜'], method:'摇合', recipe:[['龙舌兰','45 ml'],['黄 Chartreuse','20 ml'],['柠檬汁','20 ml'],['石榴糖浆','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'fluffy-duck', name:'蓬松鸭 Fluffy Duck', category:'Cocktail Club 参考', source:'Cocktail Club / Party Favorite', collection:'Creamy Drinks', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['白朗姆','Advocaat'], ingredients:['白朗姆','Advocaat','橙汁','奶油','苏打水'], flavorTags:['奶油','橙香','复古'], method:'摇合', recipe:[['白朗姆','30 ml'],['Advocaat','30 ml'],['橙汁','60 ml'],['奶油','20 ml'],['苏打水','适量']], steps:['除苏打水外加冰摇合。','倒入装冰杯。','苏打水补满。'] },
+        { id:'french-martini', name:'法式马天尼 French Martini', category:'Cocktail Club 参考', source:'Cocktail Club / Modern Classic', collection:'Vodka Modern', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['伏特加','覆盆子利口酒'], ingredients:['伏特加','覆盆子利口酒','菠萝汁'], flavorTags:['覆盆子','菠萝','柔滑'], method:'摇合', recipe:[['伏特加','45 ml'],['覆盆子利口酒','15 ml'],['菠萝汁','45 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','覆盆子装饰。'] },
+        { id:'gordon-breakfast', name:'戈登早餐 Gordon’s Breakfast', category:'Difford 参考', source:'Difford’s Guide / Modern Classic', collection:'Gin Modern', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['金酒'], ingredients:['金酒','柠檬汁','糖浆','橘子酱','苦精'], flavorTags:['橘子酱','酸甜','金酒'], method:'摇合', recipe:[['金酒','50 ml'],['柠檬汁','20 ml'],['糖浆','10 ml'],['橘子酱','1 茶匙'],['苦精','1 滴']], steps:['橘子酱与液体原料充分摇合。','双重过滤入装冰杯。','橙皮装饰。'] },
+        { id:'greenpoint', name:'绿点 Greenpoint', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Whiskey Modern', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','甜味美思','黄 Chartreuse'], ingredients:['黑麦威士忌','甜味美思','黄 Chartreuse','橙味苦精','Angostura苦精'], flavorTags:['草本','苦甜','木质'], method:'搅拌', recipe:[['黑麦威士忌','60 ml'],['甜味美思','15 ml'],['黄 Chartreuse','15 ml'],['橙味苦精','1 滴'],['Angostura苦精','1 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'halekulani', name:'哈莱库拉尼 Halekulani', category:'Difford 参考', source:'Difford’s Guide / Tropical Classic', collection:'Tiki & Tropical', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['波本威士忌'], ingredients:['波本威士忌','菠萝汁','柠檬汁','橙汁','石榴糖浆','苦精'], flavorTags:['菠萝','波本','酸甜'], method:'摇合', recipe:[['波本威士忌','45 ml'],['菠萝汁','15 ml'],['柠檬汁','15 ml'],['橙汁','15 ml'],['石榴糖浆','10 ml'],['苦精','1 滴']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','菠萝片装饰。'] },
+        { id:'improved-whiskey-cocktail', name:'改良威士忌 Improved Whiskey Cocktail', category:'Difford 参考', source:'Difford’s Guide / Old Fashioned Family', collection:'Whiskey Classics', difficulty:'中等', time:'4 分钟', glass:'古典杯', bases:['黑麦威士忌'], ingredients:['黑麦威士忌','糖浆','黑樱桃利口酒','苦艾酒','苦精'], flavorTags:['酒感','樱桃','草本'], method:'搅拌', recipe:[['黑麦威士忌','60 ml'],['糖浆','5 ml'],['黑樱桃利口酒','5 ml'],['苦艾酒','2.5 ml'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入古典杯。','柠檬皮装饰。'] },
+        { id:'japanese-cocktail', name:'日本鸡尾酒 Japanese Cocktail', category:'Difford 参考', source:'Difford’s Guide / Brandy Classic', collection:'Brandy Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['干邑'], ingredients:['干邑','杏仁糖浆','苦精'], flavorTags:['坚果','白兰地','苦甜'], method:'搅拌', recipe:[['干邑','60 ml'],['杏仁糖浆','15 ml'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'kingston-negroni', name:'金斯顿尼格罗尼 Kingston Negroni', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Negroni Variations', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['牙买加朗姆','金巴利','甜味美思'], ingredients:['牙买加朗姆','金巴利','甜味美思','橙皮'], flavorTags:['苦甜','朗姆','草本'], method:'搅拌', recipe:[['牙买加朗姆','30 ml'],['金巴利','30 ml'],['甜味美思','30 ml'],['橙皮','1 片']], steps:['所有原料加冰搅拌。','滤入装冰杯。','橙皮扭香。'] },
+        { id:'la-floridita-daiquiri', name:'佛罗里迪塔代基里 La Floridita Daiquiri', category:'Difford 参考', source:'Difford’s Guide / Cuban Classic', collection:'Rum Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['白朗姆','黑樱桃利口酒'], ingredients:['白朗姆','黑樱桃利口酒','青柠汁','糖浆'], flavorTags:['樱桃','酸甜','朗姆'], method:'摇合', recipe:[['白朗姆','60 ml'],['黑樱桃利口酒','7.5 ml'],['青柠汁','20 ml'],['糖浆','10 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','青柠片装饰。'] },
+        { id:'left-hand', name:'左手 Left Hand', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Bitter Whiskey', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['波本威士忌','金巴利','甜味美思'], ingredients:['波本威士忌','金巴利','甜味美思','巧克力苦精'], flavorTags:['苦甜','巧克力','木质'], method:'搅拌', recipe:[['波本威士忌','45 ml'],['金巴利','20 ml'],['甜味美思','20 ml'],['巧克力苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','橙皮装饰。'] },
+        { id:'london-calling', name:'伦敦呼唤 London Calling', category:'Difford 参考', source:'Difford’s Guide / Modern Gin', collection:'Gin Modern', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','菲诺雪莉'], ingredients:['金酒','菲诺雪莉','柠檬汁','糖浆','橙味苦精'], flavorTags:['雪莉','柠檬','干冽'], method:'摇合', recipe:[['金酒','45 ml'],['菲诺雪莉','15 ml'],['柠檬汁','20 ml'],['糖浆','10 ml'],['橙味苦精','2 滴']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'mai-sha-roa-na', name:'迈沙罗阿纳 Mai Sha Roa Na', category:'Difford 参考', source:'Difford’s Guide / Tiki Modern', collection:'Tiki & Tropical', difficulty:'进阶', time:'6 分钟', glass:'提基杯', bases:['陈年朗姆','牙买加朗姆'], ingredients:['陈年朗姆','牙买加朗姆','青柠汁','杏仁糖浆','百香果糖浆','苦精'], flavorTags:['热带','坚果','百香果'], method:'摇合', recipe:[['陈年朗姆','30 ml'],['牙买加朗姆','30 ml'],['青柠汁','25 ml'],['杏仁糖浆','15 ml'],['百香果糖浆','15 ml'],['苦精','1 滴']], steps:['所有原料加冰摇合。','倒入装碎冰杯。','薄荷和水果装饰。'] },
+        { id:'mamacita', name:'小妈妈 Mamacita', category:'Imbibe 参考', source:'Imbibe / Agave Modern', collection:'Modern Agave', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['龙舌兰','梅斯卡尔'], ingredients:['龙舌兰','梅斯卡尔','青柠汁','蜂蜜糖浆','辣椒酊'], flavorTags:['烟熏','辣感','酸甜'], method:'摇合', recipe:[['龙舌兰','40 ml'],['梅斯卡尔','15 ml'],['青柠汁','20 ml'],['蜂蜜糖浆','15 ml'],['辣椒酊','1 滴']], steps:['所有原料加冰摇合。','滤入装冰杯。','青柠片装饰。'] },
+        { id:'maximilian-affair', name:'马克西米连事件 Maximilian Affair', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Agave & Herbal', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['梅斯卡尔','接骨木花利口酒'], ingredients:['梅斯卡尔','接骨木花利口酒','柠檬汁','Punt e Mes'], flavorTags:['烟熏','花香','苦甜'], method:'摇合', recipe:[['梅斯卡尔','45 ml'],['接骨木花利口酒','20 ml'],['柠檬汁','20 ml'],['Punt e Mes','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','葡萄柚皮装饰。'] },
+        { id:'millionaire-1', name:'百万富翁一号 Millionaire No.1', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Sour Classics', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','牙买加朗姆'], ingredients:['黑麦威士忌','牙买加朗姆','杏子白兰地','石榴糖浆','柠檬汁','蛋清'], flavorTags:['杏子','石榴','柔滑'], method:'摇合', recipe:[['黑麦威士忌','30 ml'],['牙买加朗姆','15 ml'],['杏子白兰地','15 ml'],['柠檬汁','20 ml'],['石榴糖浆','10 ml'],['蛋清','15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入杯。'] },
+        { id:'morning-glory-fizz', name:'晨光菲士 Morning Glory Fizz', category:'Difford 参考', source:'Difford’s Guide / Fizz Classic', collection:'Fizz Classics', difficulty:'进阶', time:'6 分钟', glass:'高球杯', bases:['苏格兰威士忌','苦艾酒'], ingredients:['苏格兰威士忌','柠檬汁','糖浆','蛋清','苦艾酒','苏打水'], flavorTags:['气泡','柔滑','草本'], method:'摇合', recipe:[['苏格兰威士忌','45 ml'],['柠檬汁','25 ml'],['糖浆','15 ml'],['蛋清','15 ml'],['苦艾酒','5 ml'],['苏打水','适量']], steps:['除苏打水外先干摇。','加冰摇合后滤入杯。','苏打水补满。'] },
+        { id:'northside', name:'北区 Northside', category:'Cocktail Club 参考', source:'Cocktail Club / Gin Refresher', collection:'Gin Refreshers', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['金酒'], ingredients:['金酒','柠檬汁','糖浆','薄荷','苏打水'], flavorTags:['薄荷','气泡','清爽'], method:'摇合', recipe:[['金酒','60 ml'],['柠檬汁','20 ml'],['糖浆','15 ml'],['薄荷','8 片'],['苏打水','适量补满']], steps:['除苏打水外加冰摇合。','倒入装冰杯。','苏打水补满。'] },
+        { id:'pan-american-clipper', name:'泛美快船 Pan American Clipper', category:'Difford 参考', source:'Difford’s Guide / Apple Brandy', collection:'Apple Brandy Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['苹果白兰地'], ingredients:['苹果白兰地','青柠汁','石榴糖浆','苦艾酒'], flavorTags:['苹果','石榴','酸甜'], method:'摇合', recipe:[['苹果白兰地','60 ml'],['青柠汁','20 ml'],['石榴糖浆','15 ml'],['苦艾酒','5 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','青柠皮装饰。'] },
+        { id:'pink-lady', name:'粉红佳人 Pink Lady', category:'Difford 参考', source:'Difford’s Guide / Classic', collection:'Gin Sours', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒','苹果白兰地'], ingredients:['金酒','苹果白兰地','柠檬汁','石榴糖浆','蛋清'], flavorTags:['石榴','柔滑','酸甜'], method:'摇合', recipe:[['金酒','45 ml'],['苹果白兰地','15 ml'],['柠檬汁','20 ml'],['石榴糖浆','10 ml'],['蛋清','15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入杯。'] },
+        { id:'presbyterian', name:'长老会 Presbyterian', category:'Liquor 参考', source:'Liquor / Whiskey Highball', collection:'Whiskey Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['苏格兰威士忌'], ingredients:['苏格兰威士忌','姜汁汽水','苏打水'], flavorTags:['辛辣','气泡','木质'], method:'兑和', recipe:[['苏格兰威士忌','45 ml'],['姜汁汽水','适量'],['苏打水','适量']], steps:['杯中加冰。','加入威士忌。','等量姜汁汽水和苏打水补满。'] },
+        { id:'red-hook', name:'红钩 Red Hook', category:'Imbibe 参考', source:'Imbibe / Modern Classic', collection:'Brooklyn Variations', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['黑麦威士忌','Punt e Mes'], ingredients:['黑麦威士忌','Punt e Mes','黑樱桃利口酒'], flavorTags:['樱桃','苦甜','木质'], method:'搅拌', recipe:[['黑麦威士忌','60 ml'],['Punt e Mes','15 ml'],['黑樱桃利口酒','7.5 ml']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','樱桃装饰。'] },
+        { id:'royal-bermuda-yacht-club', name:'皇家百慕大游艇俱乐部 Royal Bermuda Yacht Club', category:'Difford 参考', source:'Difford’s Guide / Rum Classic', collection:'Rum Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['巴巴多斯朗姆','橙酒'], ingredients:['巴巴多斯朗姆','橙酒','Falernum','青柠汁'], flavorTags:['香料','酸甜','朗姆'], method:'摇合', recipe:[['巴巴多斯朗姆','60 ml'],['橙酒','15 ml'],['Falernum','15 ml'],['青柠汁','20 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','青柠皮装饰。'] },
+        { id:'rum-old-fashioned', name:'朗姆古典 Rum Old Fashioned', category:'Liquor 参考', source:'Liquor / Rum Classic', collection:'Old Fashioned Family', difficulty:'简单', time:'4 分钟', glass:'古典杯', bases:['陈年朗姆'], ingredients:['陈年朗姆','糖浆','苦精','橙皮'], flavorTags:['木质','苦甜','朗姆'], method:'搅拌', recipe:[['陈年朗姆','60 ml'],['糖浆','5 ml'],['苦精','2 滴'],['橙皮','1 片']], steps:['杯中加入原料和大冰块。','轻搅至冰冷。','橙皮扭香。'] },
+        { id:'russian-spring-punch', name:'俄罗斯春日宾治 Russian Spring Punch', category:'IBA经典', source:'IBA 官方配方', collection:'New Era Drinks', difficulty:'中等', time:'5 分钟', glass:'高球杯', bases:['伏特加','黑加仑利口酒','起泡酒'], ingredients:['伏特加','黑加仑利口酒','柠檬汁','糖浆','起泡酒'], flavorTags:['气泡','黑加仑','酸甜'], method:'摇合', recipe:[['伏特加','25 ml'],['黑加仑利口酒','15 ml'],['柠檬汁','25 ml'],['糖浆','10 ml'],['起泡酒','适量补满']], steps:['除起泡酒外加冰摇合。','倒入装冰杯。','起泡酒补满。'] },
+        { id:'saturn', name:'土星 Saturn', category:'Difford 参考', source:'Difford’s Guide / Tiki Classic', collection:'Gin Tiki', difficulty:'进阶', time:'5 分钟', glass:'古典杯', bases:['金酒'], ingredients:['金酒','百香果糖浆','柠檬汁','杏仁糖浆','Falernum'], flavorTags:['百香果','坚果','热带'], method:'摇合', recipe:[['金酒','45 ml'],['百香果糖浆','15 ml'],['柠檬汁','20 ml'],['杏仁糖浆','10 ml'],['Falernum','10 ml']], steps:['所有原料加冰摇合。','倒入装碎冰杯。','柠檬皮或樱桃装饰。'] },
+        { id:'sloe-gin-fizz', name:'黑刺李金菲士 Sloe Gin Fizz', category:'Difford 参考', source:'Difford’s Guide / Fizz Classic', collection:'Fizz Classics', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['黑刺李金酒'], ingredients:['黑刺李金酒','柠檬汁','糖浆','苏打水'], flavorTags:['浆果','气泡','酸甜'], method:'摇合', recipe:[['黑刺李金酒','45 ml'],['柠檬汁','25 ml'],['糖浆','10 ml'],['苏打水','适量补满']], steps:['除苏打水外加冰摇合。','滤入杯中。','苏打水补满。'] },
+        { id:'smoke-show', name:'烟雾秀 Smoke Show', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Blue Theme Drinks', difficulty:'进阶', time:'6 分钟', glass:'古典杯', bases:['梅斯卡尔','蓝橙酒'], ingredients:['梅斯卡尔','蓝橙酒','青柠汁','龙舌兰糖浆','盐水'], flavorTags:['烟熏','蓝橙','酸爽'], method:'摇合', recipe:[['梅斯卡尔','45 ml'],['蓝橙酒','15 ml'],['青柠汁','20 ml'],['龙舌兰糖浆','10 ml'],['盐水','2 滴']], steps:['所有原料加冰摇合。','滤入装冰杯。','可用烟熏罩香。'] },
+        { id:'spruce-goose', name:'云杉鹅 Spruce Goose', category:'Imbibe 参考', source:'Imbibe / Modern Gin', collection:'Aromatic Craft', difficulty:'中等', time:'5 分钟', glass:'鸡尾酒杯', bases:['金酒'], ingredients:['金酒','松针糖浆','柠檬汁','干味美思'], flavorTags:['森林','柠檬','干冽'], method:'摇合', recipe:[['金酒','45 ml'],['干味美思','15 ml'],['柠檬汁','20 ml'],['松针糖浆','10 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','迷迭香或松枝装饰。'] },
+        { id:'stone-fence', name:'石篱 Stone Fence', category:'Difford 参考', source:'Difford’s Guide / Highball Classic', collection:'Cider Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['威士忌'], ingredients:['威士忌','苹果酒','苦精'], flavorTags:['苹果','气泡','木质'], method:'兑和', recipe:[['威士忌','45 ml'],['苹果酒','适量补满'],['苦精','1 滴']], steps:['杯中加冰。','加入威士忌。','苹果酒补满并轻搅。'] },
+        { id:'surf-liner', name:'冲浪线 Surf Liner', category:'Imbibe 参考', source:'Imbibe / Modern Whiskey', collection:'Whiskey Sours', difficulty:'中等', time:'4 分钟', glass:'古典杯', bases:['黑麦威士忌','杏仁糖浆'], ingredients:['黑麦威士忌','柠檬汁','杏仁糖浆','Peychaud苦精'], flavorTags:['坚果','酸甜','苦精'], method:'摇合', recipe:[['黑麦威士忌','60 ml'],['柠檬汁','22.5 ml'],['杏仁糖浆','22.5 ml'],['Peychaud苦精','3 滴']], steps:['所有原料加冰摇合。','滤入装冰古典杯。','柠檬片装饰。'] },
+        { id:'three-dots-and-a-dash', name:'三点一线 Three Dots and a Dash', category:'Difford 参考', source:'Difford’s Guide / Tiki Classic', collection:'Tiki & Tropical', difficulty:'进阶', time:'6 分钟', glass:'提基杯', bases:['陈年朗姆','农业朗姆'], ingredients:['陈年朗姆','农业朗姆','青柠汁','橙汁','Falernum','蜂蜜糖浆','苦精'], flavorTags:['热带','香料','朗姆'], method:'摇合', recipe:[['陈年朗姆','45 ml'],['农业朗姆','15 ml'],['青柠汁','20 ml'],['橙汁','20 ml'],['Falernum','15 ml'],['蜂蜜糖浆','15 ml'],['苦精','2 滴']], steps:['所有原料加冰摇合。','倒入装碎冰提基杯。','三颗樱桃和菠萝条装饰。'] },
+        { id:'tom-and-jerry', name:'汤姆与杰瑞 Tom and Jerry', category:'Difford 参考', source:'Difford’s Guide / Warm Classic', collection:'Hot Drinks', difficulty:'进阶', time:'8 分钟', glass:'热饮杯', bases:['干邑','黑朗姆'], ingredients:['干邑','黑朗姆','鸡蛋糊','热牛奶','肉豆蔻'], flavorTags:['温热','奶香','香料'], method:'兑和', recipe:[['干邑','30 ml'],['黑朗姆','30 ml'],['鸡蛋糊','2 勺'],['热牛奶','适量']], steps:['杯中加入鸡蛋糊和烈酒。','热牛奶补满并搅匀。','肉豆蔻点缀。'] },
+        { id:'toreador', name:'斗牛士 Toreador', category:'Difford 参考', source:'Difford’s Guide / Agave Classic', collection:'Agave Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['龙舌兰','杏子白兰地'], ingredients:['龙舌兰','杏子白兰地','青柠汁'], flavorTags:['杏子','酸爽','龙舌兰'], method:'摇合', recipe:[['龙舌兰','45 ml'],['杏子白兰地','20 ml'],['青柠汁','20 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','青柠皮装饰。'] },
+        { id:'treacle', name:'糖蜜 Treacle', category:'Difford 参考', source:'Difford’s Guide / Modern Rum', collection:'Rum Old Fashioned', difficulty:'中等', time:'4 分钟', glass:'古典杯', bases:['陈年朗姆'], ingredients:['陈年朗姆','糖浆','苦精','苹果汁'], flavorTags:['苹果','朗姆','苦甜'], method:'搅拌', recipe:[['陈年朗姆','60 ml'],['糖浆','5 ml'],['苦精','2 滴'],['苹果汁','15 ml 浮顶']], steps:['朗姆、糖浆和苦精加冰搅拌。','滤入大冰块杯。','苹果汁浮顶。'] },
+        { id:'vesuvio', name:'维苏威 Vesuvio', category:'Difford 参考', source:'Difford’s Guide / Brandy Classic', collection:'Brandy Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['干邑','白朗姆'], ingredients:['干邑','白朗姆','柠檬汁','糖浆','蛋清'], flavorTags:['酸甜','柔滑','酒感'], method:'摇合', recipe:[['干邑','30 ml'],['白朗姆','30 ml'],['柠檬汁','20 ml'],['糖浆','15 ml'],['蛋清','15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','双重过滤入杯。'] },
+        { id:'water-lily', name:'睡莲 Water Lily', category:'Difford 参考', source:'Difford’s Guide / Modern Classic', collection:'Equal Parts Classics', difficulty:'简单', time:'4 分钟', glass:'鸡尾酒杯', bases:['金酒','紫罗兰利口酒','橙酒'], ingredients:['金酒','紫罗兰利口酒','君度','柠檬汁'], flavorTags:['花香','柑橘','酸甜'], method:'摇合', recipe:[['金酒','22.5 ml'],['紫罗兰利口酒','22.5 ml'],['君度','22.5 ml'],['柠檬汁','22.5 ml']], steps:['所有原料等量加冰摇合。','双重过滤入冰镇杯。','柠檬皮装饰。'] },
+        { id:'widows-kiss', name:'寡妇之吻 Widow’s Kiss', category:'Difford 参考', source:'Difford’s Guide / Apple Brandy', collection:'Apple Brandy Classics', difficulty:'进阶', time:'4 分钟', glass:'鸡尾酒杯', bases:['苹果白兰地','黄 Chartreuse','Benedictine'], ingredients:['苹果白兰地','黄 Chartreuse','Benedictine','苦精'], flavorTags:['草本','苹果','浓烈'], method:'搅拌', recipe:[['苹果白兰地','45 ml'],['黄 Chartreuse','20 ml'],['Benedictine','20 ml'],['苦精','2 滴']], steps:['所有原料加冰搅拌。','滤入冰镇杯。','无装饰或樱桃装饰。'] },
+        { id:'yellow-bird', name:'黄鸟 Yellow Bird', category:'Difford 参考', source:'Difford’s Guide / Tropical Classic', collection:'Rum Classics', difficulty:'中等', time:'4 分钟', glass:'鸡尾酒杯', bases:['白朗姆','Galliano','橙酒'], ingredients:['白朗姆','Galliano','君度','青柠汁'], flavorTags:['香草','柑橘','朗姆'], method:'摇合', recipe:[['白朗姆','30 ml'],['Galliano','15 ml'],['君度','15 ml'],['青柠汁','15 ml']], steps:['所有原料加冰摇合。','双重过滤入冰镇杯。','青柠皮装饰。'] },
+        { id:'yuzu-sake-collins', name:'柚子清酒柯林斯 Yuzu Sake Collins', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Sake Cocktails', difficulty:'简单', time:'4 分钟', glass:'高球杯', bases:['清酒','金酒'], ingredients:['清酒','金酒','柚子汁','糖浆','苏打水'], flavorTags:['柚子','清酒','气泡'], method:'兑和', recipe:[['清酒','45 ml'],['金酒','20 ml'],['柚子汁','15 ml'],['糖浆','10 ml'],['苏打水','适量补满']], steps:['杯中加冰。','加入清酒、金酒、柚子汁和糖浆。','苏打水补满。'] },
+        { id:'oolong-negroni', name:'乌龙尼格罗尼 Oolong Negroni', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Tea Negroni', difficulty:'中等', time:'4 分钟', glass:'古典杯', bases:['乌龙茶浸金酒','金巴利','甜味美思'], ingredients:['乌龙茶浸金酒','金巴利','甜味美思','橙皮'], flavorTags:['乌龙','苦甜','草本'], method:'搅拌', recipe:[['乌龙茶浸金酒','30 ml'],['金巴利','30 ml'],['甜味美思','30 ml'],['橙皮','1 片']], steps:['所有原料加冰搅拌。','滤入装大冰块杯。','橙皮扭香。'] },
+        { id:'sesame-highball', name:'芝麻高球 Sesame Highball', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Asian Highballs', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['日式威士忌'], ingredients:['日式威士忌','芝麻糖浆','苏打水','柠檬皮'], flavorTags:['芝麻','气泡','木质'], method:'兑和', recipe:[['日式威士忌','45 ml'],['芝麻糖浆','10 ml'],['苏打水','适量补满'],['柠檬皮','1 片']], steps:['高球杯加冰。','加入威士忌和芝麻糖浆。','苏打水补满并轻搅。'] },
+        { id:'pineapple-oolong-sour', name:'凤梨乌龙酸 Pineapple Oolong Sour', category:'Mixology 台港参考', source:'Mixology Studio 酒譜靈感', collection:'Tea Sours', difficulty:'中等', time:'5 分钟', glass:'古典杯', bases:['金酒'], ingredients:['金酒','乌龙茶','凤梨汁','柠檬汁','糖浆','蛋清'], flavorTags:['凤梨','乌龙','柔滑'], method:'摇合', recipe:[['金酒','40 ml'],['乌龙茶','30 ml'],['凤梨汁','30 ml'],['柠檬汁','15 ml'],['糖浆','10 ml'],['蛋清','15 ml']], steps:['所有原料先干摇。','加冰再次摇合。','滤入古典杯。'] },
+        { id:'blue-plum-soda', name:'蓝梅苏打 Blue Plum Soda', category:'Jigger Flip 主题', source:'Jigger Flip 課程/活動靈感', collection:'Blue Theme Drinks', difficulty:'简单', time:'3 分钟', glass:'高球杯', bases:['伏特加','蓝橙酒'], ingredients:['伏特加','蓝橙酒','梅子糖浆','柠檬汁','苏打水'], flavorTags:['蓝橙','梅子','气泡'], method:'兑和', recipe:[['伏特加','30 ml'],['蓝橙酒','15 ml'],['梅子糖浆','15 ml'],['柠檬汁','10 ml'],['苏打水','适量补满']], steps:['杯中加冰。','加入前四种原料。','苏打水补满并轻搅。'] }
+      ];
+      cocktails.push(...volumeCocktails);
+      const input = document.getElementById('ingredientInput');
+      const nameSearch = document.getElementById('nameSearch');
+      const categoryFilter = document.getElementById('categoryFilter');
+      const methodFilter = document.getElementById('methodFilter');
+      const flavorFilter = document.getElementById('flavorFilter');
+      const randomButton = document.getElementById('randomButton');
+      const selectedBox = document.getElementById('selectedBox');
+      const dataList = document.getElementById('ingredientList');
+      const suggestions = document.getElementById('suggestions');
+      const grid = document.getElementById('recipeGrid');
+      const count = document.getElementById('resultCount');
+      const activeFilter = document.getElementById('activeFilter');
+      const resultHead = document.querySelector('.result-head');
+      const empty = document.getElementById('emptyState');
+      const drawer = document.getElementById('drawer');
+      const drawerMask = document.getElementById('drawerMask');
+
+      const ingredients = Array.from(new Set(cocktails.flatMap(item => item.ingredients))).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+      const methods = Array.from(new Set(cocktails.map(item => item.method))).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+      const categories = Array.from(new Set(cocktails.map(item => item.category))).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+      const flavors = Array.from(new Set(cocktails.flatMap(item => item.flavorTags))).sort((a, b) => a.localeCompare(b, 'zh-CN'));
+
+      function escapeHtml(value) {
+        return String(value).replace(/[&<>"']/g, char => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#039;' }[char]));
+      }
+
+      const englishAliases = {
+        '尼格罗尼':'Negroni',
+        '干马天尼':'Dry Martini',
+        '玛格丽特':'Margarita',
+        '威士忌酸':'Whiskey Sour',
+        '代基里':'Daiquiri',
+        '古典鸡尾酒':'Old Fashioned',
+        '莫吉托':'Mojito',
+        '曼哈顿':'Manhattan',
+        '浓缩咖啡马天尼':'Espresso Martini',
+        '长岛冰茶':'Long Island Iced Tea',
+        '雾庭金酒酸':'Misty Garden Gin Sour',
+        '烟梅旧梦':'Smoked Plum Sour',
+        '可可高球':'Cacao Highball',
+        '椰林飘香':'Pina Colada',
+        '新加坡司令':'Singapore Sling',
+        '边车':'Sidecar',
+        '最后一语':'Last Word',
+        '萨泽拉克':'Sazerac',
+        '卡琵莉亚':'Caipirinha',
+        '薄荷茱莉普':'Mint Julep',
+        '白色佳人':'White Lady'
+      };
+
+      function nameParts(name) {
+        const match = name.match(/^(.+?)\s+([A-Za-z0-9’'&(). -]+)$/);
+        if (match) return { zh: match[1], en: match[2] };
+        return { zh: name, en: englishAliases[name] || '' };
+      }
+
+      function renderName(name) {
+        const parts = nameParts(name);
+        return `${escapeHtml(parts.zh)}${parts.en ? `<span class="english-name">${escapeHtml(parts.en)}</span>` : ''}`;
+      }
+
+      function plainName(name) {
+        const parts = nameParts(name);
+        return parts.en ? `${parts.zh} / ${parts.en}` : parts.zh;
+      }
+
+      const flavorDimensions = [
+        { title:'清爽', children:['柑橘','茶感','草本'], tags:['清爽','柑橘','茶感','乌龙','绿茶','草本','气泡'], article:'Highballs, Collins, Tea cocktails', video:'冰块与碳酸的声音', music:'NTS late night / dub techno' },
+        { title:'厚重', children:['烟熏','木质','发酵'], tags:['烟熏','木质','威士忌','发酵','浓烈','草本'], article:'Old Fashioned family, Mezcal, Sherry', video:'搅拌杯里的慢速旋转', music:'低频、黑胶噪音、雨夜街道' },
+        { title:'甜感', children:['热带水果','奶香','焦糖'], tags:['热带','奶香','甜点','焦糖','蜂蜜','菠萝','椰香'], article:'Tiki, Creamy drinks, Dessert cocktails', video:'碎冰、菠萝、奶油泡沫', music:'Balearic / city pop / slow funk' },
+        { title:'尖锐', children:['酸爽','苦味','矿物感'], tags:['酸爽','酸甜','苦甜','干冽','低酒精'], article:'Sours, Aperitivo, Sherry drinks', video:'柠檬皮油雾与苦精', music:'Post-punk / minimal wave' },
+        { title:'异域', children:['香料','花香','菌类'], tags:['香料','花香','百香果','热带','紫苏','麻香'], article:'Tiki, Asian highballs, floral sours', video:'香草、菌子、花椒、沉香木', music:'World music / field recordings' }
+      ];
+
+      const genomeFamilies = [
+        { core:'Negroni', ids:['negroni','boulevardier','old-pal','kingston-negroni','left-hand','oolong-negroni'], genes:['Gin / Spirit','Bitter','Vermouth'] },
+        { core:'Daiquiri', ids:['daiquiri','hemingway-special','la-floridita-daiquiri','nuclear-daiquiri','banana-daiquiri'], genes:['Rum','Citrus','Sweetener'] },
+        { core:'Old Fashioned', ids:['old-fashioned','rum-old-fashioned','oaxaca-old-fashioned','improved-whiskey-cocktail','treacle'], genes:['Spirit','Bitters','Sugar'] },
+        { core:'Last Word', ids:['last-word','final-ward','naked-famous','water-lily'], genes:['Equal parts','Herbal','Citrus'] },
+        { core:'Highball', ids:['moscow-mule','gin-rickey','paloma','denen-chuhai','sesame-highball','yuzu-sake-collins'], genes:['Spirit','Lengthener','Acid / Aroma'] }
+      ];
+
+      const atlasEntries = [
+        { name:'紫苏', en:'Shiso', text:'像雨后石阶边的绿色影子，带着薄荷、罗勒和一点青梅的方向。', pair:['梅子','桃子','龙舌兰','乌龙茶'], cases:['reiki-shochu','lychee-oolong','yuzu-sake-collins'] },
+        { name:'龙蒿', en:'Tarragon', text:'生长在干燥的风里，带着甘草与青草之间的气味。', pair:['金酒','柠檬','白葡萄酒','黄瓜'], cases:['gin-journey','eastside','london-calling'] },
+        { name:'杨梅', en:'Waxberry', text:'酸像电流，甜像深红色的雨，适合把夏夜压进一杯酒。', pair:['金酒','清酒','梅斯卡尔','苏打水'], cases:['rose-berry-iced-tea','blue-plum-soda','siesta'] },
+        { name:'花椒', en:'Sichuan Peppercorn', text:'不是辣，是一阵微小的震动；让柑橘和烟熏都变得有棱角。', pair:['梅斯卡尔','金酒','蜂蜜','青柠'], cases:['peppercorn-adventure','mamacita','smoke-show'] },
+        { name:'乌龙茶', en:'Oolong', text:'半发酵的空气感，像木头、花和烤糖之间的一条窄路。', pair:['金酒','荔枝','凤梨','甜味美思'], cases:['oolong-negroni','pineapple-oolong-sour','lg-iced-tea'] },
+        { name:'沉香木', en:'Agarwood', text:'烟不是装饰，是时间的气味；适合陈年朗姆、干邑和安静的杯型。', pair:['陈年朗姆','干邑','枫糖','苦精'], cases:['agarwood-craft','rum-old-fashioned','vieux-carre'] }
+      ];
+
+      const seasonalCalendar = [
+        { month:'六月', items:['杨梅','荔枝','黄皮','枇杷'], treatment:'盐渍、冷冻、澄清果汁、低温糖渍', cases:['rose-berry-iced-tea','lychee-oolong','pineapple-cake'] },
+        { month:'七月', items:['桃子','西瓜','紫苏','番茄'], treatment:'桃泥、紫苏糖浆、番茄水、乳酸发酵', cases:['sake-silk','bloody-mary','eastside'] },
+        { month:'九月', items:['桂花','梨','无花果','乌龙'], treatment:'桂花糖浆、梨利口酒、烘烤、茶浸', cases:['la-perla','oolong-negroni','green-tea-offering'] },
+        { month:'十一月', items:['柚子','山楂','栗子','姜'], treatment:'柚子盐、山楂澄清、栗子奶油、姜糖浆', cases:['yuzu-sake-collins','penicillin','hot-toddy'] }
+      ];
+
+      const inspirationItems = [
+        { type:'音乐', title:'NTS Radio 深夜场', note:'适合苦味、烟熏、低照度酒单。' },
+        { type:'唱片', title:'Warp Records 封面系统', note:'用冷色、噪点和留白组织菜单。' },
+        { type:'菌子', title:'云南雨季菌香', note:'可转译成土壤、坚果、发酵与鲜味。' },
+        { type:'电影', title:'雨夜霓虹街道', note:'适合蓝色高球、梅子、苏打和冷玻璃。' },
+        { type:'建筑', title:'混凝土、玻璃、暗门', note:'对应干冽、矿物感、低糖配方。' },
+        { type:'旅行', title:'边境风味笔记', note:'香料、茶、烟与水果的交界。' }
+      ];
+
+      const starterNotes = [
+        { idea:'青芒果 × 木姜子 × 龙舌兰', rating:'★★★★☆', text:'青芒果太尖锐，可以尝试发酵处理。' },
+        { idea:'乌龙茶 × 金巴利 × 甜味美思', rating:'★★★★★', text:'茶感把苦味拉长，适合做 Negroni 变体。' },
+        { idea:'花椒 × 梅斯卡尔 × 蜂蜜', rating:'★★★★☆', text:'麻感在尾段很好，但花椒酊需要降到 1-2 滴。' }
+      ];
+      const bartenderNotes = [...starterNotes];
+
+      function smallRecipeList(ids) {
+        return ids
+          .map(id => cocktails.find(item => item.id === id))
+          .filter(Boolean)
+          .map(item => `<div class="mini-item" data-id="${escapeHtml(item.id)}"><strong>${renderName(item.name)}</strong><div class="muted">${escapeHtml(item.bases.join(' / '))}</div></div>`)
+          .join('');
+      }
+
+      function renderFlavorMap() {
+        const flavorMap = document.getElementById('flavorMap');
+        flavorMap.innerHTML = flavorDimensions.map((item, index) => `
+          <button class="flavor-node" data-flavor="${index}">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span>${item.children.map(escapeHtml).join(' / ')}</span>
+          </button>
+        `).join('');
+        showFlavor(0);
+      }
+
+      function showFlavor(index) {
+        const item = flavorDimensions[index];
+        const matches = cocktails
+          .filter(cocktail => item.tags.some(tag => cocktail.flavorTags.includes(tag) || cocktail.ingredients.includes(tag) || cocktail.bases.includes(tag)))
+          .slice(0, 8);
+        document.getElementById('flavorOutput').innerHTML = `
+          <div class="section-kicker">${escapeHtml(item.children.join(' / '))}</div>
+          <h3>${escapeHtml(item.title)}</h3>
+          <p class="muted">酒谱、材料、文章、视频和音乐都从这个风味入口展开。</p>
+          <div class="info-grid">
+            <div class="info-tile"><span>相关文章</span><strong>${escapeHtml(item.article)}</strong></div>
+            <div class="info-tile"><span>视频</span><strong>${escapeHtml(item.video)}</strong></div>
+            <div class="info-tile"><span>音乐</span><strong>${escapeHtml(item.music)}</strong></div>
+            <div class="info-tile"><span>匹配酒谱</span><strong>${matches.length} 款</strong></div>
+          </div>
+          <div class="mini-list">${matches.map(match => `<div class="mini-item" data-id="${escapeHtml(match.id)}"><strong>${renderName(match.name)}</strong><div class="muted">${escapeHtml(match.flavorTags.join(' / '))}</div></div>`).join('')}</div>
+        `;
+      }
+
+      function renderGenome() {
+        const genomeSpace = document.getElementById('genomeSpace');
+        genomeSpace.innerHTML = genomeFamilies.map((family, index) => `
+          <button class="genome-node" data-genome="${index}">
+            <strong>${escapeHtml(family.core)}</strong>
+            <span>${escapeHtml(family.genes.join(' + '))}</span>
+          </button>
+        `).join('');
+        showGenome(0);
+      }
+
+      function showGenome(index) {
+        const family = genomeFamilies[index];
+        document.getElementById('genomeOutput').innerHTML = `
+          <div class="section-kicker">Cocktail Genome</div>
+          <h3>${escapeHtml(family.core)}</h3>
+          <p class="muted">${escapeHtml(family.genes.join(' -> '))}</p>
+          <div class="mini-list">${smallRecipeList(family.ids)}</div>
+        `;
+      }
+
+      function renderAtlas() {
+        document.getElementById('atlasGrid').innerHTML = atlasEntries.map(entry => `
+          <article class="atlas-card">
+            <div class="section-kicker">${escapeHtml(entry.en)}</div>
+            <h3>${escapeHtml(entry.name)}</h3>
+            <p>${escapeHtml(entry.text)}</p>
+            <div class="wheel"></div>
+            <div class="tag-row">${entry.pair.map(pair => `<span class="tag base-tag">${escapeHtml(pair)}</span>`).join('')}</div>
+            <div class="mini-list">${smallRecipeList(entry.cases)}</div>
+          </article>
+        `).join('');
+      }
+
+      function renderNotes() {
+        document.getElementById('notesList').innerHTML = bartenderNotes.map(note => `
+          <article class="note-card">
+            <strong>${escapeHtml(note.idea)}</strong>
+            <div class="muted">${escapeHtml(note.rating)}</div>
+            <p>${escapeHtml(note.text)}</p>
+          </article>
+        `).join('');
+      }
+
+      function renderSeasonalCalendar() {
+        document.getElementById('seasonGrid').innerHTML = seasonalCalendar.map(season => `
+          <article class="season-card">
+            <div class="section-kicker">${escapeHtml(season.month)}</div>
+            <h3>${escapeHtml(season.items.join(' / '))}</h3>
+            <p class="muted">${escapeHtml(season.treatment)}</p>
+            <div class="mini-list">${smallRecipeList(season.cases)}</div>
+          </article>
+        `).join('');
+      }
+
+      function renderInspirationFeed() {
+        document.getElementById('feedGrid').innerHTML = inspirationItems.map(item => `
+          <article class="feed-card">
+            <div class="section-kicker">${escapeHtml(item.type)}</div>
+            <h3>${escapeHtml(item.title)}</h3>
+            <p class="muted">${escapeHtml(item.note)}</p>
+          </article>
+        `).join('');
+      }
+
+      function initScrollReveal() {
+        const sections = document.querySelectorAll('.culture-section');
+        if (!('IntersectionObserver' in window)) {
+          sections.forEach(section => section.classList.add('is-visible'));
+          return;
+        }
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) entry.target.classList.add('is-visible');
+          });
+        }, { threshold: 0.16 });
+        sections.forEach(section => observer.observe(section));
+      }
+
+      function renderIngredientTools() {
+        const previousCategory = categoryFilter.value || 'all';
+        const previousMethod = methodFilter.value || 'all';
+        const previousFlavor = flavorFilter.value || 'all';
+        dataList.innerHTML = ingredients.map(item => `<option value="${escapeHtml(item)}"></option>`).join('');
+        categoryFilter.innerHTML = '<option value="all">全部来源</option>' + categories.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
+        methodFilter.innerHTML = '<option value="all">全部做法</option>' + methods.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
+        flavorFilter.innerHTML = '<option value="all">全部风味</option>' + flavors.map(item => `<option value="${escapeHtml(item)}">${escapeHtml(item)}</option>`).join('');
+        categoryFilter.value = categories.includes(previousCategory) ? previousCategory : 'all';
+        methodFilter.value = methods.includes(previousMethod) ? previousMethod : 'all';
+        flavorFilter.value = flavors.includes(previousFlavor) ? previousFlavor : 'all';
+        suggestions.innerHTML = ingredients
+          .filter(item => !selected.includes(item))
+          .slice(0, 18)
+          .map(item => `<button class="suggestion" data-ingredient="${escapeHtml(item)}">${escapeHtml(item)}</button>`)
+          .join('');
+
+        selectedBox.querySelectorAll('.selected-pill').forEach(node => node.remove());
+        selected.forEach(item => {
+          const pill = document.createElement('span');
+          pill.className = 'selected-pill';
+          pill.innerHTML = `${escapeHtml(item)} <button data-remove="${escapeHtml(item)}" aria-label="移除 ${escapeHtml(item)}">×</button>`;
+          selectedBox.insertBefore(pill, input);
+        });
+      }
+
+      function filteredCocktails() {
+        const query = nameSearch.value.trim().toLowerCase();
+        return cocktails.filter(item => {
+          const matchesIngredients = selected.every(ingredient => item.ingredients.includes(ingredient));
+          const matchesName = !query || [item.name, item.id, item.collection || '', item.source || ''].join(' ').toLowerCase().includes(query);
+          const matchesCategory = categoryFilter.value === 'all' || item.category === categoryFilter.value;
+          const matchesMethod = methodFilter.value === 'all' || item.method === methodFilter.value;
+          const matchesFlavor = flavorFilter.value === 'all' || item.flavorTags.includes(flavorFilter.value);
+          return matchesIngredients && matchesName && matchesCategory && matchesMethod && matchesFlavor;
+        });
+      }
+
+      function renderCards() {
+        const list = filteredCocktails();
+        count.textContent = list.length;
+        resultHead.classList.remove('flash');
+        window.requestAnimationFrame(() => resultHead.classList.add('flash'));
+        document.getElementById('statTotal').textContent = cocktails.length;
+        document.getElementById('statIba').textContent = cocktails.filter(item => item.category.includes('IBA') || item.category === 'IBA经典').length;
+        document.getElementById('statCustom').textContent = cocktails.filter(item => !item.category.includes('IBA') && item.category !== 'IBA经典').length;
+        const activeParts = [];
+        if (selected.length) activeParts.push(selected.join('、'));
+        if (nameSearch.value.trim()) activeParts.push(`酒名：${nameSearch.value.trim()}`);
+        if (categoryFilter.value !== 'all') activeParts.push(categoryFilter.value);
+        if (methodFilter.value !== 'all') activeParts.push(methodFilter.value);
+        if (flavorFilter.value !== 'all') activeParts.push(flavorFilter.value);
+        activeFilter.textContent = activeParts.length ? `当前按 ${activeParts.join(' / ')} 检索` : '';
+        empty.hidden = list.length > 0;
+        grid.innerHTML = list.map((item, index) => `
+          <article class="recipe-card" data-id="${escapeHtml(item.id)}" style="--i:${index % 18}">
+            <div class="card-topline">
+              <span class="tag ${item.category === 'IBA经典' ? 'classic' : 'custom'}">${escapeHtml(item.category)}</span>
+              <span class="muted">${escapeHtml(item.method)}</span>
+            </div>
+            <h3>${renderName(item.name)}</h3>
+            <div class="card-meta">
+              <span>${escapeHtml(item.collection || item.source || '吧台资料库')}</span>
+              <span>${escapeHtml(item.difficulty || '标准')}</span>
+              <span>${escapeHtml(item.time || '4 分钟')}</span>
+            </div>
+            <div class="tag-row">${item.bases.map(base => `<span class="tag base-tag">${escapeHtml(base)}</span>`).join('')}</div>
+            <div class="flavor-row">${item.flavorTags.map(tag => `<span>${escapeHtml(tag)}</span>`).join('')}</div>
+          </article>
+        `).join('');
+      }
+
+      function addIngredient(value) {
+        const ingredient = ingredients.find(item => item === value.trim());
+        if (ingredient && !selected.includes(ingredient)) {
+          selected.push(ingredient);
+          input.value = '';
+          renderIngredientTools();
+          renderCards();
+        }
+      }
+
+      function openDrawer(item) {
+        document.getElementById('drawerTitle').textContent = plainName(item.name);
+        document.getElementById('drawerTags').innerHTML = `
+          <span class="tag ${item.category === 'IBA经典' ? 'classic' : 'custom'}">${escapeHtml(item.category)}</span>
+          <span class="tag base-tag">${escapeHtml(item.method)}</span>
+          ${item.flavorTags.map(tag => `<span class="tag">${escapeHtml(tag)}</span>`).join('')}
+        `;
+        document.getElementById('drawerInfo').innerHTML = `
+          <div class="info-tile"><span>来源</span><strong>${escapeHtml(item.source || item.category || '吧台资料库')}</strong></div>
+          <div class="info-tile"><span>系列</span><strong>${escapeHtml(item.collection || 'Classic / House File')}</strong></div>
+          <div class="info-tile"><span>难度</span><strong>${escapeHtml(item.difficulty || '标准')}</strong></div>
+          <div class="info-tile"><span>出品杯型</span><strong>${escapeHtml(item.glass || '按吧台标准')}</strong></div>
+        `;
+        document.getElementById('drawerRecipe').innerHTML = item.recipe
+          .map(([name, amount]) => `<div class="recipe-row"><span>${escapeHtml(name)}</span><strong>${escapeHtml(amount)}</strong></div>`)
+          .join('');
+        document.getElementById('drawerSteps').innerHTML = item.steps.map(step => `<li>${escapeHtml(step)}</li>`).join('');
+        drawer.classList.add('open');
+        drawerMask.classList.add('open');
+      }
+
+      function closeDrawer() {
+        drawer.classList.remove('open');
+        drawerMask.classList.remove('open');
+      }
+
+      input.addEventListener('keydown', event => {
+        if (event.key === 'Enter') {
+          event.preventDefault();
+          addIngredient(input.value);
+        }
+      });
+      input.addEventListener('change', () => addIngredient(input.value));
+      [nameSearch, categoryFilter, methodFilter, flavorFilter].forEach(control => {
+        control.addEventListener('input', renderCards);
+        control.addEventListener('change', renderCards);
+      });
+      suggestions.addEventListener('click', event => {
+        const button = event.target.closest('[data-ingredient]');
+        if (button) addIngredient(button.dataset.ingredient);
+      });
+      selectedBox.addEventListener('click', event => {
+        const button = event.target.closest('[data-remove]');
+        if (!button) return;
+        const index = selected.indexOf(button.dataset.remove);
+        if (index >= 0) selected.splice(index, 1);
+        renderIngredientTools();
+        renderCards();
+      });
+      grid.addEventListener('click', event => {
+        const card = event.target.closest('[data-id]');
+        if (!card) return;
+        const item = cocktails.find(cocktail => cocktail.id === card.dataset.id);
+        if (item) openDrawer(item);
+      });
+      randomButton.addEventListener('click', () => {
+        const list = filteredCocktails();
+        const pool = list.length ? list : cocktails;
+        const item = pool[Math.floor(Math.random() * pool.length)];
+        if (item) openDrawer(item);
+      });
+      document.getElementById('flavorMap').addEventListener('click', event => {
+        const node = event.target.closest('[data-flavor]');
+        if (node) showFlavor(Number(node.dataset.flavor));
+      });
+      document.getElementById('flavorOutput').addEventListener('click', event => {
+        const itemNode = event.target.closest('[data-id]');
+        const item = itemNode && cocktails.find(cocktail => cocktail.id === itemNode.dataset.id);
+        if (item) openDrawer(item);
+      });
+      document.getElementById('genomeSpace').addEventListener('click', event => {
+        const node = event.target.closest('[data-genome]');
+        if (node) showGenome(Number(node.dataset.genome));
+      });
+      document.getElementById('genomeOutput').addEventListener('click', event => {
+        const itemNode = event.target.closest('[data-id]');
+        const item = itemNode && cocktails.find(cocktail => cocktail.id === itemNode.dataset.id);
+        if (item) openDrawer(item);
+      });
+      document.getElementById('atlasGrid').addEventListener('click', event => {
+        const itemNode = event.target.closest('[data-id]');
+        const item = itemNode && cocktails.find(cocktail => cocktail.id === itemNode.dataset.id);
+        if (item) openDrawer(item);
+      });
+      document.getElementById('seasonGrid').addEventListener('click', event => {
+        const itemNode = event.target.closest('[data-id]');
+        const item = itemNode && cocktails.find(cocktail => cocktail.id === itemNode.dataset.id);
+        if (item) openDrawer(item);
+      });
+      document.getElementById('noteForm').addEventListener('submit', event => {
+        event.preventDefault();
+        const idea = document.getElementById('noteIdea').value.trim();
+        const text = document.getElementById('noteText').value.trim();
+        const rating = document.getElementById('noteRating').value;
+        if (!idea || !text) return;
+        bartenderNotes.unshift({ idea, rating, text });
+        event.target.reset();
+        renderNotes();
+      });
+      document.getElementById('closeDrawer').addEventListener('click', closeDrawer);
+      drawerMask.addEventListener('click', closeDrawer);
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') closeDrawer();
+      });
+
+      renderFlavorMap();
+      renderGenome();
+      renderAtlas();
+      renderNotes();
+      renderSeasonalCalendar();
+      renderInspirationFeed();
+      initScrollReveal();
+      renderIngredientTools();
+      renderCards();
+    </script>
+  </body>
+</html>
