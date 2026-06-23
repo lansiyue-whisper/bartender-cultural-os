@@ -25,15 +25,14 @@ function IngredientAtlas() {
       <div className="mb-14 grid gap-8 lg:grid-cols-[0.78fr_1.22fr]">
         <div>
           <p className="font-mono text-xs uppercase tracking-[0.36em] text-electric">
-            Ingredient Atlas / Herbarium
+            Ingredient Atlas / 食材图鉴
           </p>
           <h2 className="mt-6 text-5xl font-semibold leading-none sm:text-7xl">
-            A botanical archive for drink memory.
+            Specimens for flavor decisions.
           </h2>
         </div>
         <p className="max-w-2xl text-lg leading-8 text-muted">
-          The atlas now behaves like a specimen room. Each ingredient keeps its sensory writing,
-          pairing logic, cocktail cases, and graph relationships in one place.
+          像植物标本馆一样阅读食材：气味、搭配、适合酒型、鸡尾酒案例与图谱关系都放在同一张卡片里。
         </p>
       </div>
 

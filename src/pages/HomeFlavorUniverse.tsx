@@ -19,8 +19,8 @@ function HomeFlavorUniverse() {
 
       <div className="relative z-10 flex min-h-screen flex-col justify-between px-5 py-8 sm:px-8 lg:px-12">
         <div className="flex items-start justify-between gap-6 font-mono text-xs uppercase tracking-[0.28em] text-white/55">
-          <span>A Cultural Archive for Bartenders</span>
-          <span className="hidden sm:block">Flavor Universe / Prototype 01</span>
+          <span>A World Ingredient Map for Bartenders</span>
+          <span className="hidden sm:block">Ingredients / Regions / Cocktail Direction</span>
         </div>
 
         <div className="max-w-5xl pb-12">
@@ -30,7 +30,7 @@ function HomeFlavorUniverse() {
             transition={{ duration: 0.9, ease: 'easeOut' }}
             className="text-balance text-6xl font-semibold leading-[0.9] text-white sm:text-8xl lg:text-[9.5rem]"
           >
-            Tonight, what are you looking for?
+            Every ingredient carries a place.
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 18 }}
@@ -38,8 +38,17 @@ function HomeFlavorUniverse() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="mt-8 text-2xl text-white/70 sm:text-4xl"
           >
-            今晚你想寻找什么味道？
+            每一种食材，都带着一个地方。
           </motion.p>
+          <motion.a
+            href="#world-map"
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.32, duration: 0.8 }}
+            className="mt-10 inline-flex border border-electric/60 px-6 py-3 font-mono text-xs uppercase tracking-[0.24em] text-electric shadow-glow transition hover:bg-electric hover:text-white"
+          >
+            World Ingredient Map / 世界食材地图
+          </motion.a>
         </div>
       </div>
 

@@ -35,14 +35,14 @@ function FlavorMap() {
     <section className="grid min-h-screen gap-10 border-t border-white/10 py-24 lg:grid-cols-[0.82fr_1.18fr]">
       <div>
         <p className="font-mono text-xs uppercase tracking-[0.36em] text-electric">
-          Flavor Map / Exploratory Universe
+          Explore by Flavor / 从风味开始探索
         </p>
         <h2 className="mt-6 max-w-3xl text-5xl font-semibold leading-none sm:text-7xl">
-          Enter through taste, then keep moving.
+          Start with a flavor, then find a place.
         </h2>
         <p className="mt-6 max-w-xl text-lg leading-8 text-muted">
-          Flavor is now the entry point into the whole archive. Each category opens a living
-          neighborhood of ingredients, drinks, regions, techniques, music, and writing.
+          从柑橘、草本、茶感、烟熏、发酵等方向进入，找到相关原料、酒谱、地区与灵感。
+          这里是世界食材地图之外的第二种探索方式。
         </p>
 
         <div className="mt-10 grid gap-3 sm:grid-cols-2">

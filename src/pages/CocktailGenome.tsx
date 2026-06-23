@@ -18,14 +18,13 @@ function CocktailGenome() {
     <section className="grid min-h-screen gap-10 border-t border-white/10 py-24 lg:grid-cols-[1.15fr_0.85fr]">
       <div>
         <p className="font-mono text-xs uppercase tracking-[0.36em] text-electric">
-          Cocktail Genome / Force Graph
+          Cocktail Genome / 鸡尾酒基因图谱
         </p>
         <h2 className="mt-6 max-w-4xl text-5xl font-semibold leading-none sm:text-7xl">
-          Every classic is a mutation engine.
+          Classics are mutation engines.
         </h2>
         <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
-          The graph now behaves as a living network. Start from Negroni, then jump into
-          ingredients, regions, music, articles, and techniques through real relationships.
+          从经典鸡尾酒进入，观察基酒替换、苦甜结构、地区原料、音乐氛围与技法之间的连接。
         </p>
 
         <motion.div

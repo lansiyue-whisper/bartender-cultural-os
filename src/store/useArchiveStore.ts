@@ -21,8 +21,8 @@ type ArchiveState = {
 
 export const useArchiveStore = create<ArchiveState>((set) => ({
   ambientMode: false,
-  selectedUniverseNodeId: 'negroni',
-  selectedKnowledgeNodeId: 'negroni',
+  selectedUniverseNodeId: 'shiso',
+  selectedKnowledgeNodeId: 'shiso',
   builder: {
     base: 'Gin',
     acid: 'Yuzu',

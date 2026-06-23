@@ -23,10 +23,14 @@ function Laboratory() {
   return (
     <section className="grid min-h-screen gap-10 border-t border-white/10 py-24 lg:grid-cols-[0.88fr_1.12fr]">
       <div>
-        <p className="font-mono text-xs uppercase tracking-[0.36em] text-electric">Laboratory / Flavor Builder</p>
-        <h2 className="mt-6 text-5xl font-semibold leading-none sm:text-7xl">A quiet workbench for trials.</h2>
+        <p className="font-mono text-xs uppercase tracking-[0.36em] text-electric">
+          Laboratory / 风味实验室
+        </p>
+        <h2 className="mt-6 text-5xl font-semibold leading-none sm:text-7xl">
+          Build a direction before a recipe.
+        </h2>
         <p className="mt-6 max-w-xl text-lg leading-8 text-muted">
-          Select a base, acid, sweetener, aroma, and texture. The prototype produces a flavor direction in real time.
+          选择基酒、酸、甜、香气和质感，先生成风味方向，再回到世界食材地图寻找合适地区与原料。
         </p>
 
         <motion.div
