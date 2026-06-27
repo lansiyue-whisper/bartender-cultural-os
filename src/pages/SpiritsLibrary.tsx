@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { getIngredientDetail } from '../data/worldIngredients';
 import { getSpirit, spirits } from '../data/spirits';
 
@@ -53,6 +53,17 @@ function TagButton({ children, onClick }: { children: ReactNode; onClick?: () =>
 function SpiritsLibrary() {
   const [activeSpiritId, setActiveSpiritId] = useState('gin');
   const activeSpirit = getSpirit(activeSpiritId);
+
+  useEffect(() => {
+    const handleSpiritSelect = (event: Event) => {
+      const spiritId = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!spiritId || !spirits.some((spirit) => spirit.id === spiritId)) return;
+      setActiveSpiritId(spiritId);
+    };
+
+    window.addEventListener('archive:select-spirit', handleSpiritSelect);
+    return () => window.removeEventListener('archive:select-spirit', handleSpiritSelect);
+  }, []);
 
   return (
     <section id="spirits-library" className="min-h-screen border-t border-white/10 py-24">
