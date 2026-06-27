@@ -65,6 +65,37 @@ function DetailBlock({ title, items }: { title: string; items: string[] }) {
   );
 }
 
+const flavorWheelLabels = [
+  ['fresh', 'Fresh'],
+  ['acid', 'Acid'],
+  ['sweet', 'Sweet'],
+  ['floral', 'Floral'],
+  ['herbal', 'Herbal'],
+  ['savory', 'Umami / Savory'],
+] as const;
+
+function FlavorWheel({ values }: { values: Record<(typeof flavorWheelLabels)[number][0], number> }) {
+  return (
+    <div>
+      <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">Flavor Wheel / 风味轮</div>
+      <div className="mt-4 grid gap-3">
+        {flavorWheelLabels.map(([key, label]) => (
+          <div key={key} className="grid grid-cols-[6.5rem_1fr_1.5rem] items-center gap-3">
+            <span className="font-mono text-[10px] uppercase tracking-[0.16em] text-white/45">{label}</span>
+            <div className="h-2 overflow-hidden bg-white/10">
+              <div
+                className="h-full bg-electric shadow-glow"
+                style={{ width: `${Math.max(1, Math.min(5, values[key])) * 20}%` }}
+              />
+            </div>
+            <span className="font-mono text-xs text-white/55">{values[key]}/5</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 function WorldIngredientMap() {
   const [activeRegionId, setActiveRegionId] = useState('east-asia');
   const [activeIngredientName, setActiveIngredientName] = useState('紫苏');
@@ -74,6 +105,14 @@ function WorldIngredientMap() {
   const relatedRegions = useMemo(
     () => activeRegion.linkedRegionIds.map(getRegion),
     [activeRegion.linkedRegionIds],
+  );
+  const relatedIngredients = useMemo(
+    () =>
+      relatedRegions
+        .flatMap((region) => region.ingredients)
+        .filter((ingredient) => !activeRegion.ingredients.includes(ingredient))
+        .slice(0, 18),
+    [activeRegion.ingredients, relatedRegions],
   );
   const ingredientRegions = getRegionsForIngredient(activeIngredient.name);
   const regionInspirations = getInspirationsForRegion(activeRegion.id);
@@ -135,7 +174,7 @@ function WorldIngredientMap() {
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <div className="font-mono text-xs uppercase tracking-[0.28em] text-electric">
-                    Region archive
+                    Region Profile / 区域档案
                   </div>
                   <h3 className="mt-4 text-5xl font-semibold leading-none">
                     {activeRegion.regionName}
@@ -152,7 +191,7 @@ function WorldIngredientMap() {
               <div className="mt-8 grid gap-8 xl:grid-cols-2">
                 <div>
                   <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
-                    Representative ingredients / 代表食材
+                    Signature Ingredients / 代表食材
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {activeRegion.ingredients.map((ingredient) => (
@@ -171,14 +210,14 @@ function WorldIngredientMap() {
                   </div>
                 </div>
 
-                <DetailBlock title="Flavor keywords / 风味关键词" items={activeRegion.flavorProfile} />
-                <DetailBlock title="Local drinks / 当地酒类与发酵饮品" items={activeRegion.localDrinks} />
-                <DetailBlock title="Cocktail directions / 鸡尾酒方向" items={activeRegion.cocktailDirections} />
+                <DetailBlock title="Flavor Profile / 风味关键词" items={activeRegion.flavorProfile} />
+                <DetailBlock title="Local Drinks / 当地酒类与发酵饮品" items={activeRegion.localDrinks} />
+                <DetailBlock title="Cocktail Directions / 鸡尾酒方向" items={activeRegion.cocktailDirections} />
               </div>
 
               <div className="mt-8 border-l border-electric/50 pl-5 text-base leading-8 text-white/68">
                 <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
-                  Pairing logic / 推荐搭配逻辑
+                  Pairing Logic / 推荐搭配逻辑
                 </div>
                 <p className="mt-3">{activeRegion.pairingLogic}</p>
               </div>
@@ -202,6 +241,23 @@ function WorldIngredientMap() {
                   ))}
                 </div>
               </div>
+
+              <div className="mt-8">
+                <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
+                  Related Ingredients / 关联食材
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {relatedIngredients.map((ingredient) => (
+                    <button
+                      key={ingredient}
+                      onClick={() => setActiveIngredientName(ingredient)}
+                      className="border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/65 transition hover:border-electric/60"
+                    >
+                      {ingredient}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </motion.article>
           </AnimatePresence>
 
@@ -219,12 +275,35 @@ function WorldIngredientMap() {
                   Ingredient detail / 食材详情
                 </div>
                 <h3 className="mt-4 text-4xl font-semibold leading-none">{activeIngredient.name}</h3>
-                <p className="mt-5 text-base leading-7 text-white/70">{activeIngredient.description}</p>
+                <div className="mt-3 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+                  <span className="border border-white/10 px-2 py-1">{activeIngredient.englishName}</span>
+                  <span className="border border-white/10 px-2 py-1">{activeIngredient.category}</span>
+                  <span className="border border-white/10 px-2 py-1">
+                    {ingredientRegions.map((region) => region.englishName).join(' / ')}
+                  </span>
+                </div>
+                <div className="mt-5">
+                  <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
+                    Ingredient Story / 食材故事
+                  </div>
+                  <p className="mt-3 text-base leading-7 text-white/70">{activeIngredient.story}</p>
+                </div>
                 <div className="mt-6 grid gap-5">
-                  <DetailBlock title="Flavor tags / 风味标签" items={activeIngredient.flavorTags} />
-                  <DetailBlock title="Base spirits / 适合基酒" items={activeIngredient.baseSpirits} />
+                  <FlavorWheel values={activeIngredient.flavorWheel} />
+                  <div>
+                    <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
+                      Season / 最佳季节
+                    </div>
+                    <p className="mt-3 border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/70">
+                      {activeIngredient.season}
+                    </p>
+                  </div>
+                  <DetailBlock title="Suitable Spirits / 适合烈酒" items={activeIngredient.suitableSpirits} />
                   <DetailBlock title="Techniques / 适合技法" items={activeIngredient.techniques} />
-                  <DetailBlock title="Drink directions / 可做方向" items={activeIngredient.cocktailDirections} />
+                  <DetailBlock title="Cocktail Directions / 可做方向" items={activeIngredient.cocktailDirections} />
+                  <DetailBlock title="Similar Ingredients / 相似食材" items={activeIngredient.relatedIngredients.similar} />
+                  <DetailBlock title="Substitutes / 替代食材" items={activeIngredient.relatedIngredients.substitutes} />
+                  <DetailBlock title="Pair With / 可搭配食材" items={activeIngredient.relatedIngredients.pairings} />
                   <div>
                     <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
                       Related regions / 关联地区
