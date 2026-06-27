@@ -20,7 +20,7 @@ function HomeFlavorUniverse() {
       <div className="relative z-10 flex min-h-screen flex-col justify-between px-5 py-8 sm:px-8 lg:px-12">
         <div className="flex items-start justify-between gap-6 font-mono text-xs uppercase tracking-[0.28em] text-white/55">
           <span>A World Ingredient Map for Bartenders</span>
-          <span className="hidden sm:block">Ingredients / Regions / Cocktail Direction</span>
+          <span className="hidden sm:block">Ingredients / Spirits / Regions / Cocktail Direction</span>
         </div>
 
         <div className="max-w-5xl pb-12">

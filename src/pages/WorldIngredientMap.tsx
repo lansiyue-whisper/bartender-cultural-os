@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   fieldNotes,
   getIngredientDetail,
@@ -122,6 +122,22 @@ function WorldIngredientMap() {
     setActiveRegionId(id);
     setActiveIngredientName(nextRegion.ingredients[0]);
   };
+
+  useEffect(() => {
+    const handleIngredientSelect = (event: Event) => {
+      const nextIngredient = (event as CustomEvent<{ name: string }>).detail?.name;
+      if (!nextIngredient) return;
+
+      const nextRegion = getRegionsForIngredient(nextIngredient)[0];
+      if (nextRegion) {
+        setActiveRegionId(nextRegion.id);
+      }
+      setActiveIngredientName(nextIngredient);
+    };
+
+    window.addEventListener('archive:select-ingredient', handleIngredientSelect);
+    return () => window.removeEventListener('archive:select-ingredient', handleIngredientSelect);
+  }, []);
 
   return (
     <section id="world-map" className="min-h-screen border-t border-white/10 py-24">

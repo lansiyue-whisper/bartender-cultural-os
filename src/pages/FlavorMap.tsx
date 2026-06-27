@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from 'framer-motion';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import ForceGraph2D from '../components/ForceGraph2D';
 import NodeDetailPanel from '../components/NodeDetailPanel';
 import {
@@ -31,8 +31,20 @@ function FlavorMap() {
     setGlobalSelectedId(node.id);
   };
 
+  useEffect(() => {
+    const handleFlavorEvent = (event: Event) => {
+      const flavorId = (event as CustomEvent<{ id: string }>).detail?.id;
+      if (!flavorId || !flavorNodeIds.includes(flavorId)) return;
+      setActiveFlavorId(flavorId);
+      setGlobalSelectedId(flavorId);
+    };
+
+    window.addEventListener('archive:select-flavor', handleFlavorEvent);
+    return () => window.removeEventListener('archive:select-flavor', handleFlavorEvent);
+  }, [setGlobalSelectedId]);
+
   return (
-    <section className="grid min-h-screen gap-10 border-t border-white/10 py-24 lg:grid-cols-[0.82fr_1.18fr]">
+    <section id="flavor-map" className="grid min-h-screen gap-10 border-t border-white/10 py-24 lg:grid-cols-[0.82fr_1.18fr]">
       <div>
         <p className="font-mono text-xs uppercase tracking-[0.36em] text-electric">
           Explore by Flavor / 从风味开始探索
