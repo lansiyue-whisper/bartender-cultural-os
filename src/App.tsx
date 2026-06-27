@@ -6,16 +6,18 @@ import HomeFlavorUniverse from './pages/HomeFlavorUniverse';
 import IngredientAtlas from './pages/IngredientAtlas';
 import Laboratory from './pages/Laboratory';
 import SpiritsLibrary from './pages/SpiritsLibrary';
+import TechniqueLibrary from './pages/TechniqueLibrary';
 import WorldIngredientMap, { FieldNotesPreview, InspirationArchive } from './pages/WorldIngredientMap';
 
 const sections = [
   ['01', 'World Ingredient Map', '世界食材地图', '从地区、食材与地域风味进入。'],
   ['02', 'Spirits Library', '烈酒图书馆', '从 Gin、Rum、Whisky、Tequila 等烈酒出发。'],
-  ['03', 'Explore by Flavor', '从风味开始探索', '从酸感、草本、烟熏、发酵等方向进入。'],
-  ['04', 'Ingredient Atlas', '食材图鉴', '查看植物、果实、香料与技法关系。'],
-  ['05', 'Cocktail Genome', '鸡尾酒基因图谱', '理解经典酒谱的结构演变。'],
-  ['06', 'Inspiration Archive', '灵感档案', '连接音乐、旅行、自然与酒谱方向。'],
-  ['07', 'Recipe Archive', '配方资料库', '保留旧配方库作为查询入口。'],
+  ['03', 'Technique Library', '调酒技法图书馆', '从 Cordial、Shrub、Milk Punch 等技法进入。'],
+  ['04', 'Explore by Flavor', '从风味开始探索', '从酸感、草本、烟熏、发酵等方向进入。'],
+  ['05', 'Ingredient Atlas', '食材图鉴', '查看植物、果实、香料与技法关系。'],
+  ['06', 'Cocktail Genome', '鸡尾酒基因图谱', '理解经典酒谱的结构演变。'],
+  ['07', 'Inspiration Archive', '灵感档案', '连接音乐、旅行、自然与酒谱方向。'],
+  ['08', 'Recipe Archive', '配方资料库', '保留旧配方库作为查询入口。'],
 ];
 
 function App() {
@@ -29,7 +31,7 @@ function App() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.7 }}
-          className="grid gap-4 border-y border-white/10 py-8 md:grid-cols-7"
+          className="grid gap-4 border-y border-white/10 py-8 md:grid-cols-4 xl:grid-cols-8"
         >
           {sections.map(([number, label, cn, description]) => (
             <div key={number} className="min-h-24 border-white/10 md:border-r md:pr-4">
@@ -43,6 +45,7 @@ function App() {
 
         <WorldIngredientMap />
         <SpiritsLibrary />
+        <TechniqueLibrary />
         <FlavorMap />
         <IngredientAtlas />
         <CocktailGenome />
