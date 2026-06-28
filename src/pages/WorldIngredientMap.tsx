@@ -1,5 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
+import { getAtlasIngredientByName } from '../data/flavorAtlas';
 import {
   fieldNotes,
   getIngredientDetail,
@@ -101,6 +102,7 @@ function WorldIngredientMap() {
   const [activeIngredientName, setActiveIngredientName] = useState('紫苏');
   const activeRegion = getRegion(activeRegionId);
   const activeIngredient = getIngredientDetail(activeIngredientName);
+  const atlasIngredient = getAtlasIngredientByName(activeIngredient.englishName) ?? getAtlasIngredientByName(activeIngredient.name);
 
   const relatedRegions = useMemo(
     () => activeRegion.linkedRegionIds.map(getRegion),
@@ -306,6 +308,14 @@ function WorldIngredientMap() {
                 </div>
                 <div className="mt-6 grid gap-5">
                   <FlavorWheel values={activeIngredient.flavorWheel} />
+                  {atlasIngredient ? (
+                    <>
+                      <DetailBlock title="Flavor Profile / 风味结构" items={atlasIngredient.flavorProfile} />
+                      <DetailBlock title="Pairings / 搭配食材" items={atlasIngredient.pairings} />
+                      <DetailBlock title="Preparations / 处理方式" items={atlasIngredient.preparations} />
+                      <DetailBlock title="Alternatives / 替代食材" items={atlasIngredient.alternatives} />
+                    </>
+                  ) : null}
                   <div>
                     <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
                       Season / 最佳季节
@@ -314,9 +324,9 @@ function WorldIngredientMap() {
                       {activeIngredient.season}
                     </p>
                   </div>
-                  <DetailBlock title="Suitable Spirits / 适合烈酒" items={activeIngredient.suitableSpirits} />
-                  <DetailBlock title="Techniques / 适合技法" items={activeIngredient.techniques} />
-                  <DetailBlock title="Cocktail Directions / 可做方向" items={activeIngredient.cocktailDirections} />
+                  <DetailBlock title="Suitable Spirits / 适合烈酒" items={atlasIngredient?.spirits ?? activeIngredient.suitableSpirits} />
+                  <DetailBlock title="Techniques / 适合技法" items={atlasIngredient?.techniques ?? activeIngredient.techniques} />
+                  <DetailBlock title="Cocktail Ideas / 鸡尾酒方向" items={atlasIngredient?.cocktailIdeas ?? activeIngredient.cocktailDirections} />
                   <DetailBlock title="Similar Ingredients / 相似食材" items={activeIngredient.relatedIngredients.similar} />
                   <DetailBlock title="Substitutes / 替代食材" items={activeIngredient.relatedIngredients.substitutes} />
                   <DetailBlock title="Pair With / 可搭配食材" items={activeIngredient.relatedIngredients.pairings} />
