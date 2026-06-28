@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import AmbientToggle from './components/AmbientToggle';
 import CocktailGenome from './pages/CocktailGenome';
+import ExploreGraph from './pages/ExploreGraph';
 import FlavorMap from './pages/FlavorMap';
 import HomeFlavorUniverse from './pages/HomeFlavorUniverse';
 import IngredientAtlas from './pages/IngredientAtlas';
@@ -13,11 +14,12 @@ const sections = [
   ['01', 'World Ingredient Map', '世界食材地图', '从地区、食材与地域风味进入。'],
   ['02', 'Spirits Library', '烈酒图书馆', '从 Gin、Rum、Whisky、Tequila 等烈酒出发。'],
   ['03', 'Technique Library', '调酒技法图书馆', '从 Cordial、Shrub、Milk Punch 等技法进入。'],
-  ['04', 'Explore by Flavor', '从风味开始探索', '从酸感、草本、烟熏、发酵等方向进入。'],
-  ['05', 'Ingredient Atlas', '食材图鉴', '查看植物、果实、香料与技法关系。'],
-  ['06', 'Cocktail Genome', '鸡尾酒基因图谱', '理解经典酒谱的结构演变。'],
-  ['07', 'Inspiration Archive', '灵感档案', '连接音乐、旅行、自然与酒谱方向。'],
-  ['08', 'Recipe Archive', '配方资料库', '保留旧配方库作为查询入口。'],
+  ['04', 'Explore Graph', '风味知识网络', '把食材、烈酒、技法、风味连接成图谱。'],
+  ['05', 'Explore by Flavor', '从风味开始探索', '从酸感、草本、烟熏、发酵等方向进入。'],
+  ['06', 'Ingredient Atlas', '食材图鉴', '查看植物、果实、香料与技法关系。'],
+  ['07', 'Cocktail Genome', '鸡尾酒基因图谱', '理解经典酒谱的结构演变。'],
+  ['08', 'Inspiration Archive', '灵感档案', '连接音乐、旅行、自然与酒谱方向。'],
+  ['09', 'Recipe Archive', '配方资料库', '保留旧配方库作为查询入口。'],
 ];
 
 function App() {
@@ -31,7 +33,7 @@ function App() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.7 }}
-          className="grid gap-4 border-y border-white/10 py-8 md:grid-cols-4 xl:grid-cols-8"
+          className="grid gap-4 border-y border-white/10 py-8 md:grid-cols-3 xl:grid-cols-9"
         >
           {sections.map(([number, label, cn, description]) => (
             <div key={number} className="min-h-24 border-white/10 md:border-r md:pr-4">
@@ -46,6 +48,7 @@ function App() {
         <WorldIngredientMap />
         <SpiritsLibrary />
         <TechniqueLibrary />
+        <ExploreGraph />
         <FlavorMap />
         <IngredientAtlas />
         <CocktailGenome />
