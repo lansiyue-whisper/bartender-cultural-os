@@ -1,6 +1,6 @@
+import { atlasIngredients, atlasCocktailIdeas } from './flavorAtlas';
 import { spirits } from './spirits';
 import { techniques } from './techniques';
-import { ingredientDetails, worldRegions } from './worldIngredients';
 
 export type GraphNodeType = 'ingredient' | 'spirit' | 'technique' | 'flavor' | 'region' | 'cocktail' | 'season';
 
@@ -32,141 +32,48 @@ export type GraphEdge = {
 const flavorDescriptions: Record<string, string> = {
   Acid: 'Bright pressure: citrus, vinegar, green fruit and structured sourness.',
   Bitter: 'Structure before sweetness: peel, roots, coffee and aperitif tension.',
+  Chocolate: 'Cacao, roast, fat, bitterness and dessert-adjacent depth.',
   Citrus: 'Peel oil, fresh acid, floral lift and clean aromatic brightness.',
   Coffee: 'Roasted bitterness, acidity, depth and dry finish.',
+  Creamy: 'Milk texture, lactic softness and rounded body.',
+  Earthy: 'Roots, soil, mushroom, grain and grounded savory depth.',
   Fermented: 'Living acidity, funk, umami, tea-like depth and savory movement.',
   Floral: 'High aromatic lift from flowers, perfumed water and delicate fruit skins.',
   Fresh: 'Mineral, cold, green, carbonated and quick on the tongue.',
   Fruit: 'Ripe fruit, skins, pulp, color and seasonal acidity.',
+  Funky: 'Wild fermentation, tropical overtones and unruly aromatic lift.',
+  Grain: 'Cereal, malt, bread, roast and structural sweetness.',
   Herbal: 'Leaf, stem, medicine cabinet, garden herbs and wet green aroma.',
+  Lactic: 'Yogurt, whey, dairy acid and soft fermented texture.',
+  Mineral: 'Salt, stone, clean edges and restrained dryness.',
   Nutty: 'Fat, roast, seed, oil and rounded mid-palate.',
   Roasted: 'Toast, grain, coffee, cacao and warm extraction.',
+  Saline: 'Sea salt, brine, seaweed and savory lift.',
   Savory: 'Salt, umami, fermentation, brine and culinary depth.',
   Smoke: 'Char, resin, wood, peat, toasted fruit and slow finish.',
+  Soft: 'Low pressure texture, roundness and gentle sweetness.',
   Spice: 'Heat, warmth, pepper, seed spice and long aromatic tail.',
   Sweet: 'Honey, syrup, ripe fruit, caramel and rounded texture.',
   Tea: 'Tannin, oxidation, roast, floral lift and dry aftertaste.',
   Tropical: 'Lush fruit, cane, coconut, pulp and warm-climate brightness.',
+  Umami: 'Glutamate depth, broth, fermentation and long savory finish.',
 };
-
-const graphFlavorNames = Object.keys(flavorDescriptions);
-
-const seasonBuckets = ['Spring', 'Summer', 'Autumn', 'Winter', 'All Year'];
-
-const techniqueIdByName = new Map(techniques.map((technique) => [technique.name, technique.id]));
-const spiritIdByName = new Map(spirits.map((spirit) => [spirit.name, spirit.id]));
-const regionIdByEnglish = new Map(worldRegions.map((region) => [region.englishName, region.id]));
 
 function slug(value: string) {
   return value
     .toLowerCase()
     .replace(/&/g, 'and')
-    .replace(/\//g, ' ')
-    .replace(/\s+/g, '-')
-    .replace(/[^\u4e00-\u9fa5a-z0-9-]/g, '');
+    .replace(/[’']/g, '')
+    .replace(/[^\u4e00-\u9fa5a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
 }
 
 function unique<T>(items: T[]) {
   return Array.from(new Set(items));
 }
 
-function isString(value: string | undefined): value is string {
-  return typeof value === 'string';
-}
-
 function nodeId(type: GraphNodeType, value: string) {
   return `${type}:${slug(value)}`;
-}
-
-function flavorNodeId(flavor: string) {
-  return nodeId('flavor', flavor);
-}
-
-function cocktailNodeId(cocktail: string) {
-  return nodeId('cocktail', cocktail);
-}
-
-function seasonNodeId(season: string) {
-  return nodeId('season', season);
-}
-
-function normalizeSeason(season: string) {
-  const lower = season.toLowerCase();
-  if (lower.includes('spring')) return 'Spring';
-  if (lower.includes('summer')) return 'Summer';
-  if (lower.includes('autumn') || lower.includes('fall')) return 'Autumn';
-  if (lower.includes('winter')) return 'Winter';
-  return 'All Year';
-}
-
-function flavorCandidatesForIngredient(ingredientName: string) {
-  const ingredient = ingredientDetails.find((item) => item.name === ingredientName);
-  if (!ingredient) return ['Fresh', 'Fruit', 'Acid'];
-
-  const wheelFlavors = Object.entries(ingredient.flavorWheel)
-    .sort(([, a], [, b]) => b - a)
-    .map(([key]) => {
-      if (key === 'fresh') return 'Fresh';
-      if (key === 'acid') return 'Acid';
-      if (key === 'sweet') return 'Sweet';
-      if (key === 'floral') return 'Floral';
-      if (key === 'herbal') return 'Herbal';
-      return 'Savory';
-    });
-
-  const categoryFlavors = [
-    ingredient.category.includes('Citrus') ? 'Citrus' : null,
-    ingredient.category.includes('Tea') ? 'Tea' : null,
-    ingredient.category.includes('Coffee') ? 'Coffee' : null,
-    ingredient.category.includes('Tropical') ? 'Tropical' : null,
-    ingredient.category.includes('Spice') ? 'Spice' : null,
-    ingredient.category.includes('Nut') || ingredient.category.includes('Seed') ? 'Nutty' : null,
-    ingredient.category.includes('Fermented') ? 'Fermented' : null,
-  ].filter(Boolean) as string[];
-
-  return unique([...categoryFlavors, ...wheelFlavors]).slice(0, 5);
-}
-
-function getIngredientRegions(ingredientName: string) {
-  const directRegions = worldRegions.filter((region) => region.ingredients.includes(ingredientName));
-  const fallbackRegions = directRegions.flatMap((region) =>
-    region.linkedRegionIds.map((linkedId) => worldRegions.find((item) => item.id === linkedId)).filter(Boolean),
-  ) as typeof worldRegions;
-
-  return unique([...directRegions, ...fallbackRegions].map((region) => region.id)).slice(0, 2);
-}
-
-function getIngredientTechniques(ingredientName: string) {
-  const ingredient = ingredientDetails.find((item) => item.name === ingredientName);
-  const direct = ingredient?.techniques.map((name) => techniqueIdByName.get(name)).filter(isString) ?? [];
-  const fromTechniqueProfiles = techniques
-    .filter((technique) => technique.bestForIngredients.includes(ingredientName))
-    .map((technique) => technique.id);
-
-  return unique([...direct, ...fromTechniqueProfiles, 'infusion', 'syrup']).slice(0, 3);
-}
-
-function getIngredientSpirits(ingredientName: string) {
-  const ingredient = ingredientDetails.find((item) => item.name === ingredientName);
-  const direct = ingredient?.suitableSpirits.map((name) => spiritIdByName.get(name)).filter(isString) ?? [];
-  const fromSpiritProfiles = spirits
-    .filter((spirit) => spirit.bestIngredients.includes(ingredientName))
-    .map((spirit) => spirit.id);
-
-  return unique([...direct, ...fromSpiritProfiles, 'gin', 'rum', 'vodka']).slice(0, 4);
-}
-
-function getIngredientRelations(ingredientName: string) {
-  const ingredient = ingredientDetails.find((item) => item.name === ingredientName);
-  const related = ingredient
-    ? [
-        ...ingredient.relatedIngredients.similar,
-        ...ingredient.relatedIngredients.substitutes,
-        ...ingredient.relatedIngredients.pairings,
-      ]
-    : [];
-
-  return unique(related.filter((item) => ingredientDetails.some((ingredientItem) => ingredientItem.name === item))).slice(0, 5);
 }
 
 function addNode(nodes: Map<string, GraphNode>, node: GraphNode) {
@@ -183,161 +90,122 @@ function buildKnowledgeGraph() {
   const nodes = new Map<string, GraphNode>();
   const edges = new Map<string, GraphEdge>();
 
-  worldRegions.forEach((region) => {
+  atlasIngredients.forEach((ingredient) => {
     addNode(nodes, {
-      id: nodeId('region', region.id),
-      type: 'region',
-      title: `${region.englishName} / ${region.regionName}`,
-      subtitle: 'Region / 地区',
-      description: region.description,
+      id: nodeId('ingredient', ingredient.id),
+      type: 'ingredient',
+      title: ingredient.name,
+      subtitle: `${ingredient.category} / ${ingredient.season}`,
+      description: ingredient.description,
     });
   });
 
-  graphFlavorNames.forEach((flavor) => {
+  unique(atlasIngredients.flatMap((ingredient) => ingredient.regions)).forEach((region) => {
     addNode(nodes, {
-      id: flavorNodeId(flavor),
+      id: nodeId('region', region),
+      type: 'region',
+      title: region,
+      subtitle: 'Region / 地区',
+      description: `A regional flavor field connected to ingredients, spirits and cocktail directions from ${region}.`,
+    });
+  });
+
+  unique(atlasIngredients.flatMap((ingredient) => ingredient.flavorProfile)).forEach((flavor) => {
+    addNode(nodes, {
+      id: nodeId('flavor', flavor),
       type: 'flavor',
       title: flavor,
       subtitle: 'Flavor / 风味',
-      description: flavorDescriptions[flavor],
+      description: flavorDescriptions[flavor] ?? `${flavor} as a searchable flavor field in The Flavor Atlas.`,
     });
   });
 
-  seasonBuckets.forEach((season) => {
+  unique(atlasIngredients.map((ingredient) => ingredient.season)).forEach((season) => {
     addNode(nodes, {
-      id: seasonNodeId(season),
+      id: nodeId('season', season),
       type: 'season',
       title: season,
       subtitle: 'Season / 季节',
-      description: season === 'All Year' ? 'Stable material that can be used across the year.' : `Best explored during ${season.toLowerCase()}.`,
+      description: season === 'All Year' ? 'Stable ingredients that can be used across the year.' : `Ingredients that peak or read especially well during ${season}.`,
     });
   });
 
   spirits.forEach((spirit) => {
-    const spiritNodeId = nodeId('spirit', spirit.id);
     addNode(nodes, {
-      id: spiritNodeId,
+      id: nodeId('spirit', spirit.name),
       type: 'spirit',
       title: spirit.name,
       subtitle: `${spirit.category} / ${spirit.origin}`,
       description: spirit.description,
     });
-
-    unique(spirit.bestIngredients).slice(0, 6).forEach((ingredient) => {
-      addEdge(edges, spiritNodeId, nodeId('ingredient', ingredient), 'pairs-with');
-    });
-
-    unique(spirit.bestPairingFlavors).slice(0, 5).forEach((flavor) => {
-      addEdge(edges, spiritNodeId, flavorNodeId(flavor), 'shares-flavor');
-    });
-
-    unique([
-      ...spirit.suitableTechniques.map((name) => techniqueIdByName.get(name)).filter(isString),
-      ...techniques.filter((technique) => technique.suitableSpirits.includes(spirit.name)).map((technique) => technique.id),
-    ])
-      .slice(0, 4)
-      .forEach((techniqueId) => addEdge(edges, spiritNodeId, nodeId('technique', techniqueId), 'works-with-technique'));
-
-    spirit.cocktailDirections.slice(0, 4).forEach((cocktail) => {
-      addNode(nodes, {
-        id: cocktailNodeId(cocktail),
-        type: 'cocktail',
-        title: cocktail,
-        subtitle: 'Cocktail Direction / 鸡尾酒方向',
-        description: `A development direction connected to ${spirit.name}.`,
-      });
-      addEdge(edges, spiritNodeId, cocktailNodeId(cocktail), 'used-in-cocktail');
-    });
-
-    spirit.relatedRegions.forEach((regionName) => {
-      const regionId = regionIdByEnglish.get(regionName);
-      if (regionId) addEdge(edges, spiritNodeId, nodeId('region', regionId), 'belongs-to-region');
-    });
   });
 
   techniques.forEach((technique) => {
-    const techniqueNodeId = nodeId('technique', technique.id);
     addNode(nodes, {
-      id: techniqueNodeId,
+      id: nodeId('technique', technique.name),
       type: 'technique',
       title: technique.name,
       subtitle: `${technique.difficulty} / ${technique.shelfLife}`,
       description: technique.description,
     });
+  });
 
-    technique.bestForIngredients.slice(0, 6).forEach((ingredient) => {
-      addEdge(edges, techniqueNodeId, nodeId('ingredient', ingredient), 'works-with-technique');
-    });
-
-    technique.bestForFlavors.slice(0, 4).forEach((flavor) => {
-      addEdge(edges, techniqueNodeId, flavorNodeId(flavor), 'shares-flavor');
-    });
-
-    technique.suitableSpirits.slice(0, 5).forEach((spirit) => {
-      const spiritId = spiritIdByName.get(spirit);
-      if (spiritId) addEdge(edges, techniqueNodeId, nodeId('spirit', spiritId), 'works-with-spirit');
-    });
-
-    technique.cocktailDirections.slice(0, 4).forEach((cocktail) => {
-      addNode(nodes, {
-        id: cocktailNodeId(cocktail),
-        type: 'cocktail',
-        title: cocktail,
-        subtitle: 'Cocktail Direction / 鸡尾酒方向',
-        description: `A development direction that works with ${technique.name}.`,
-      });
-      addEdge(edges, techniqueNodeId, cocktailNodeId(cocktail), 'used-in-cocktail');
+  atlasCocktailIdeas.forEach((cocktail) => {
+    addNode(nodes, {
+      id: nodeId('cocktail', cocktail),
+      type: 'cocktail',
+      title: cocktail,
+      subtitle: 'Cocktail Idea / 鸡尾酒方向',
+      description: `${cocktail} is a development direction generated from The Flavor Atlas ingredient database.`,
     });
   });
 
-  ingredientDetails.forEach((ingredient) => {
-    const ingredientNodeId = nodeId('ingredient', ingredient.name);
-    addNode(nodes, {
-      id: ingredientNodeId,
-      type: 'ingredient',
-      title: `${ingredient.englishName} / ${ingredient.name}`,
-      subtitle: ingredient.category,
-      description: ingredient.story,
-    });
+  atlasIngredients.forEach((ingredient) => {
+    const ingredientId = nodeId('ingredient', ingredient.id);
 
-    getIngredientRegions(ingredient.name).forEach((regionId) => {
-      addEdge(edges, ingredientNodeId, nodeId('region', regionId), 'belongs-to-region');
-    });
+    ingredient.regions.forEach((region) => addEdge(edges, ingredientId, nodeId('region', region), 'belongs-to-region'));
+    ingredient.flavorProfile.forEach((flavor) => addEdge(edges, ingredientId, nodeId('flavor', flavor), 'shares-flavor'));
+    ingredient.spirits.forEach((spirit) => addEdge(edges, ingredientId, nodeId('spirit', spirit), 'works-with-spirit'));
+    ingredient.techniques.forEach((technique) => addEdge(edges, ingredientId, nodeId('technique', technique), 'works-with-technique'));
+    ingredient.cocktailIdeas.forEach((cocktail) => addEdge(edges, ingredientId, nodeId('cocktail', cocktail), 'used-in-cocktail'));
+    ingredient.pairings.forEach((pairing) => addEdge(edges, ingredientId, nodeId('ingredient', slug(pairing)), 'pairs-with'));
+    ingredient.similarIngredients.forEach((similar) => addEdge(edges, ingredientId, nodeId('ingredient', slug(similar)), 'similar-to'));
+    ingredient.alternatives.forEach((alternative) => addEdge(edges, ingredientId, nodeId('ingredient', slug(alternative)), 'alternative-to'));
+    addEdge(edges, ingredientId, nodeId('season', ingredient.season), 'best-in-season');
+  });
 
-    flavorCandidatesForIngredient(ingredient.name).slice(0, 5).forEach((flavor) => {
-      addEdge(edges, ingredientNodeId, flavorNodeId(flavor), 'shares-flavor');
-    });
-
-    getIngredientSpirits(ingredient.name).forEach((spiritId) => {
-      addEdge(edges, ingredientNodeId, nodeId('spirit', spiritId), 'works-with-spirit');
-    });
-
-    getIngredientTechniques(ingredient.name).forEach((techniqueId) => {
-      addEdge(edges, ingredientNodeId, nodeId('technique', techniqueId), 'works-with-technique');
-    });
-
-    getIngredientRelations(ingredient.name).forEach((relatedIngredient, index) => {
-      addEdge(edges, ingredientNodeId, nodeId('ingredient', relatedIngredient), index === 0 ? 'similar-to' : 'pairs-with');
-    });
-
-    ingredient.relatedIngredients.substitutes.slice(0, 2).forEach((alternative) => {
-      if (ingredientDetails.some((item) => item.name === alternative)) {
-        addEdge(edges, ingredientNodeId, nodeId('ingredient', alternative), 'alternative-to');
-      }
-    });
-
-    ingredient.cocktailDirections.slice(0, 4).forEach((cocktail) => {
+  spirits.forEach((spirit) => {
+    const spiritId = nodeId('spirit', spirit.name);
+    spirit.bestIngredients.forEach((ingredient) => addEdge(edges, spiritId, nodeId('ingredient', slug(ingredient)), 'pairs-with'));
+    spirit.bestPairingFlavors.forEach((flavor) => addEdge(edges, spiritId, nodeId('flavor', flavor), 'shares-flavor'));
+    spirit.suitableTechniques.forEach((technique) => addEdge(edges, spiritId, nodeId('technique', technique), 'works-with-technique'));
+    spirit.cocktailDirections.forEach((cocktail) => {
       addNode(nodes, {
-        id: cocktailNodeId(cocktail),
+        id: nodeId('cocktail', cocktail),
         type: 'cocktail',
         title: cocktail,
-        subtitle: 'Cocktail Direction / 鸡尾酒方向',
-        description: `A cocktail direction that can express ${ingredient.englishName} / ${ingredient.name}.`,
+        subtitle: 'Cocktail Idea / 鸡尾酒方向',
+        description: `A cocktail direction connected to ${spirit.name}.`,
       });
-      addEdge(edges, ingredientNodeId, cocktailNodeId(cocktail), 'used-in-cocktail');
+      addEdge(edges, spiritId, nodeId('cocktail', cocktail), 'used-in-cocktail');
     });
+  });
 
-    addEdge(edges, ingredientNodeId, seasonNodeId(normalizeSeason(ingredient.season)), 'best-in-season');
+  techniques.forEach((technique) => {
+    const techniqueId = nodeId('technique', technique.name);
+    technique.bestForIngredients.forEach((ingredient) => addEdge(edges, techniqueId, nodeId('ingredient', slug(ingredient)), 'works-with-technique'));
+    technique.bestForFlavors.forEach((flavor) => addEdge(edges, techniqueId, nodeId('flavor', flavor), 'shares-flavor'));
+    technique.suitableSpirits.forEach((spirit) => addEdge(edges, techniqueId, nodeId('spirit', spirit), 'works-with-spirit'));
+    technique.cocktailDirections.forEach((cocktail) => {
+      addNode(nodes, {
+        id: nodeId('cocktail', cocktail),
+        type: 'cocktail',
+        title: cocktail,
+        subtitle: 'Cocktail Idea / 鸡尾酒方向',
+        description: `A cocktail direction connected to ${technique.name}.`,
+      });
+      addEdge(edges, techniqueId, nodeId('cocktail', cocktail), 'used-in-cocktail');
+    });
   });
 
   return {
@@ -373,5 +241,5 @@ export function getGraphNeighborhood(id: string) {
 }
 
 export function getDefaultGraphNodeId() {
-  return nodeId('ingredient', '柚子');
+  return nodeId('ingredient', 'yuzu');
 }
