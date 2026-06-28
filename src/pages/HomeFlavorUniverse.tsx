@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import FlavorUniverseCanvas from '../components/FlavorUniverseCanvas';
 import NodeDetailPanel from '../components/NodeDetailPanel';
+import { atlasStats } from '../data/flavorAtlas';
 import { getKnowledgeNode } from '../data/knowledgeGraph';
 import { useArchiveStore } from '../store/useArchiveStore';
 
@@ -49,6 +50,26 @@ function HomeFlavorUniverse() {
           >
             World Ingredient Map / 世界食材地图
           </motion.a>
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.44, duration: 0.8 }}
+            className="mt-10 grid max-w-4xl grid-cols-2 gap-3 border-y border-white/10 py-5 sm:grid-cols-3 lg:grid-cols-6"
+          >
+            {[
+              ['Ingredients', atlasStats.ingredients],
+              ['Cocktail Ideas', atlasStats.cocktailIdeas],
+              ['Pairings', atlasStats.pairings],
+              ['Spirits', atlasStats.spirits],
+              ['Techniques', atlasStats.techniques],
+              ['Preparations', atlasStats.preparations],
+            ].map(([label, value]) => (
+              <div key={label}>
+                <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-white/38">{label}</div>
+                <div className="mt-2 text-2xl font-semibold text-white">{value}</div>
+              </div>
+            ))}
+          </motion.div>
         </div>
       </div>
 
