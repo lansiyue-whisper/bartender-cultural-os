@@ -1,5 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useEffect, useMemo, useState } from 'react';
+import EncyclopediaEntryLayout from '../components/EncyclopediaEntryLayout';
+import { getIngredientEntryByName } from '../data/encyclopediaEntries';
 import { atlasIngredients, getAtlasIngredientByName } from '../data/flavorAtlas';
 import {
   fieldNotes,
@@ -103,6 +105,7 @@ function WorldIngredientMap() {
   const activeRegion = getRegion(activeRegionId);
   const activeIngredient = getIngredientDetail(activeIngredientName);
   const atlasIngredient = getAtlasIngredientByName(activeIngredient.englishName) ?? getAtlasIngredientByName(activeIngredient.name);
+  const encyclopediaEntry = getIngredientEntryByName(atlasIngredient?.name ?? activeIngredient.englishName) ?? getIngredientEntryByName(activeIngredient.name);
   const activeRegionIngredients = useMemo(
     () =>
       atlasIngredients
@@ -302,72 +305,62 @@ function WorldIngredientMap() {
                 transition={{ duration: 0.25 }}
                 className="glow-card p-6"
               >
-                <div className="font-mono text-xs uppercase tracking-[0.28em] text-electric">
-                  Ingredient detail / 食材详情
-                </div>
-                <h3 className="mt-4 text-4xl font-semibold leading-none">
-                  {atlasIngredient ? atlasIngredient.name : activeIngredient.name}
-                </h3>
-                <div className="mt-3 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
-                  <span className="border border-white/10 px-2 py-1">
-                    {atlasIngredient ? atlasIngredient.englishName : activeIngredient.englishName}
-                  </span>
-                  <span className="border border-white/10 px-2 py-1">
-                    {atlasIngredient ? atlasIngredient.category : activeIngredient.category}
-                  </span>
-                  <span className="border border-white/10 px-2 py-1">
-                    {atlasIngredient ? atlasIngredient.regions.join(' / ') : ingredientRegions.map((region) => region.englishName).join(' / ')}
-                  </span>
-                </div>
-                <div className="mt-5">
-                  <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
-                    Ingredient Story / 食材故事
-                  </div>
-                  <p className="mt-3 text-base leading-7 text-white/70">
-                    {atlasIngredient ? atlasIngredient.description : activeIngredient.story}
-                  </p>
-                </div>
-                <div className="mt-6 grid gap-5">
-                  <FlavorWheel values={activeIngredient.flavorWheel} />
-                  {atlasIngredient ? (
-                    <>
-                      <DetailBlock title="Flavor Profile / 风味结构" items={atlasIngredient.flavorProfile} />
-                      <DetailBlock title="Pairings / 搭配食材" items={atlasIngredient.pairings} />
-                      <DetailBlock title="Preparations / 处理方式" items={atlasIngredient.preparations} />
-                      <DetailBlock title="Alternatives / 替代食材" items={atlasIngredient.alternatives} />
-                    </>
-                  ) : null}
-                  <div>
-                    <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
-                      Season / 最佳季节
+                {encyclopediaEntry ? (
+                  <EncyclopediaEntryLayout entry={encyclopediaEntry} />
+                ) : (
+                  <>
+                    <div className="font-mono text-xs uppercase tracking-[0.28em] text-electric">
+                      Ingredient detail / 食材详情
                     </div>
-                    <p className="mt-3 border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/70">
-                      {atlasIngredient ? atlasIngredient.season : activeIngredient.season}
-                    </p>
-                  </div>
-                  <DetailBlock title="Suitable Spirits / 适合烈酒" items={atlasIngredient?.spirits ?? activeIngredient.suitableSpirits} />
-                  <DetailBlock title="Techniques / 适合技法" items={atlasIngredient?.techniques ?? activeIngredient.techniques} />
-                  <DetailBlock title="Cocktail Ideas / 鸡尾酒方向" items={atlasIngredient?.cocktailIdeas ?? activeIngredient.cocktailDirections} />
-                  <DetailBlock title="Similar Ingredients / 相似食材" items={atlasIngredient?.similarIngredients ?? activeIngredient.relatedIngredients.similar} />
-                  <DetailBlock title="Substitutes / 替代食材" items={atlasIngredient?.alternatives ?? activeIngredient.relatedIngredients.substitutes} />
-                  <DetailBlock title="Pair With / 可搭配食材" items={atlasIngredient?.pairings ?? activeIngredient.relatedIngredients.pairings} />
-                  <div>
-                    <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
-                      Related regions / 关联地区
+                    <h3 className="mt-4 text-4xl font-semibold leading-none">
+                      {atlasIngredient ? atlasIngredient.name : activeIngredient.name}
+                    </h3>
+                    <div className="mt-3 flex flex-wrap gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/45">
+                      <span className="border border-white/10 px-2 py-1">
+                        {atlasIngredient ? atlasIngredient.englishName : activeIngredient.englishName}
+                      </span>
+                      <span className="border border-white/10 px-2 py-1">
+                        {atlasIngredient ? atlasIngredient.category : activeIngredient.category}
+                      </span>
+                      <span className="border border-white/10 px-2 py-1">
+                        {atlasIngredient ? atlasIngredient.regions.join(' / ') : ingredientRegions.map((region) => region.englishName).join(' / ')}
+                      </span>
                     </div>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      {ingredientRegions.map((region) => (
-                        <button
-                          key={region.id}
-                          onClick={() => handleRegionSelect(region.id)}
-                          className="border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/65 transition hover:border-electric/60"
-                        >
-                          {region.regionName}
-                        </button>
-                      ))}
+                    <div className="mt-5">
+                      <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
+                        Ingredient Story / 食材故事
+                      </div>
+                      <p className="mt-3 text-base leading-7 text-white/70">
+                        {atlasIngredient ? atlasIngredient.description : activeIngredient.story}
+                      </p>
                     </div>
-                  </div>
-                </div>
+                    <div className="mt-6 grid gap-5">
+                      <FlavorWheel values={activeIngredient.flavorWheel} />
+                      {atlasIngredient ? (
+                        <>
+                          <DetailBlock title="Flavor Profile / 风味结构" items={atlasIngredient.flavorProfile} />
+                          <DetailBlock title="Pairings / 搭配食材" items={atlasIngredient.pairings} />
+                          <DetailBlock title="Preparations / 处理方式" items={atlasIngredient.preparations} />
+                          <DetailBlock title="Alternatives / 替代食材" items={atlasIngredient.alternatives} />
+                        </>
+                      ) : null}
+                      <div>
+                        <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
+                          Season / 最佳季节
+                        </div>
+                        <p className="mt-3 border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/70">
+                          {atlasIngredient ? atlasIngredient.season : activeIngredient.season}
+                        </p>
+                      </div>
+                      <DetailBlock title="Suitable Spirits / 适合烈酒" items={atlasIngredient?.spirits ?? activeIngredient.suitableSpirits} />
+                      <DetailBlock title="Techniques / 适合技法" items={atlasIngredient?.techniques ?? activeIngredient.techniques} />
+                      <DetailBlock title="Cocktail Ideas / 鸡尾酒方向" items={atlasIngredient?.cocktailIdeas ?? activeIngredient.cocktailDirections} />
+                      <DetailBlock title="Similar Ingredients / 相似食材" items={atlasIngredient?.similarIngredients ?? activeIngredient.relatedIngredients.similar} />
+                      <DetailBlock title="Substitutes / 替代食材" items={atlasIngredient?.alternatives ?? activeIngredient.relatedIngredients.substitutes} />
+                      <DetailBlock title="Pair With / 可搭配食材" items={atlasIngredient?.pairings ?? activeIngredient.relatedIngredients.pairings} />
+                    </div>
+                  </>
+                )}
               </motion.aside>
             </AnimatePresence>
 
