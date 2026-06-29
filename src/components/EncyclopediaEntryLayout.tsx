@@ -2,16 +2,62 @@ import type { ReactNode } from 'react';
 import type { EncyclopediaEntry, EntryFlavorWheel } from '../data/encyclopediaEntries';
 
 const wheelItems: Array<[keyof EntryFlavorWheel, string]> = [
-  ['fresh', 'Fresh'],
-  ['acidity', 'Acidity'],
-  ['sweetness', 'Sweetness'],
-  ['bitterness', 'Bitterness'],
-  ['floral', 'Floral'],
-  ['herbal', 'Herbal'],
+  ['fresh', 'Fresh / 清爽'],
+  ['acidity', 'Acidity / 酸度'],
+  ['sweetness', 'Sweetness / 甜度'],
+  ['bitterness', 'Bitterness / 苦度'],
+  ['floral', 'Floral / 花香'],
+  ['herbal', 'Herbal / 草本'],
   ['savory', 'Umami / Savory'],
-  ['intensity', 'Intensity'],
-  ['persistence', 'Persistence'],
+  ['intensity', 'Intensity / 强度'],
+  ['persistence', 'Persistence / 留香'],
 ];
+
+const fieldLabelZh: Record<string, string> = {
+  Fresh: '新鲜使用',
+  Cordial: '风味酸甜液',
+  Shrub: '醋酸果饮',
+  Infusion: '浸泡萃取',
+  Syrup: '糖浆',
+  Fermentation: '发酵',
+  Clarification: '澄清',
+  'Milk Punch': '牛奶澄清潘趣',
+  Foam: '泡沫',
+  Salt: '盐',
+  Powder: '粉末',
+  Oil: '油脂香气',
+  Taste: '味觉',
+  Aroma: '香气',
+  Texture: '质感',
+  Intensity: '强度',
+  Acidity: '酸度',
+  Sweetness: '甜度',
+  Bitterness: '苦度',
+  Persistence: '留香',
+  'How Bartenders Use It': '调酒师如何使用',
+  'Classic Uses': '经典用法',
+  'Modern Uses': '现代用法',
+  'Typical Cocktail Structures': '典型鸡尾酒结构',
+  'Best Ingredients': '最佳食材',
+  'Best Spirits': '最佳烈酒',
+  'Best Techniques': '最佳技法',
+  'Best Flavor Families': '最佳风味家族',
+  'Best Cocktail Structures': '最佳鸡尾酒结构',
+  'Avoid Pairings': '避免搭配',
+  'Similar Ingredients': '相似食材',
+  Alternatives: '替代食材',
+  'Seasonal Alternatives': '季节替代',
+  'Where It Is Used': '使用地区',
+  'Traditional Cuisine': '传统饮食语境',
+  'Cocktail Culture': '鸡尾酒文化语境',
+  Books: '书籍',
+  Research: '研究与测试',
+  'Industry Notes': '行业笔记',
+};
+
+function bilingualLabel(label: string) {
+  return fieldLabelZh[label] ? `${label} / ${fieldLabelZh[label]}` : label;
+}
 
 function EntrySection({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -51,7 +97,9 @@ function FieldGrid({ fields }: { fields: Array<[string, string | string[]]> }) {
     <div className="grid gap-4 md:grid-cols-2">
       {fields.map(([label, value]) => (
         <div key={label} className="border border-white/10 bg-black/30 p-4">
-          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/42">{label}</div>
+          <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/42">
+            {bilingualLabel(label)}
+          </div>
           {Array.isArray(value) ? (
             <div className="mt-3">
               <TagList items={value} />
@@ -135,7 +183,7 @@ function EncyclopediaEntryLayout({ entry }: { entry: EncyclopediaEntry }) {
               style={{ borderColor: entry.hero.imageTone }}
             />
             <div className="mt-5 text-center font-mono text-[10px] uppercase tracking-[0.2em] text-white/38">
-              specimen image
+              specimen image / 标本图像
             </div>
           </div>
         </div>
