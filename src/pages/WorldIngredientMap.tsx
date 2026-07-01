@@ -295,7 +295,7 @@ function WorldIngredientMap() {
             </motion.article>
           </AnimatePresence>
 
-          <div className="grid gap-5 xl:grid-cols-[0.9fr_1.1fr]">
+          <div className="grid gap-5">
             <AnimatePresence mode="wait">
               <motion.aside
                 key={activeIngredient.name}
@@ -303,7 +303,7 @@ function WorldIngredientMap() {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: 18 }}
                 transition={{ duration: 0.25 }}
-                className="glow-card p-6"
+                className="glow-card p-6 sm:p-8"
               >
                 {encyclopediaEntry ? (
                   <EncyclopediaEntryLayout entry={encyclopediaEntry} />
