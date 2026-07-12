@@ -1,9 +1,11 @@
 import { useMemo, useState } from 'react';
 import { cocktails } from '../data/cocktails';
 import { atlasIngredients, getAtlasIngredientByName } from '../data/flavorAtlas';
+import { getIngredientRecipeAliases, ingredientRecipeProfiles, type PracticalRecipe } from '../data/ingredientRecipeProfiles';
 import { getIngredientDetail, ingredientDetails } from '../data/worldIngredients';
 
 const ingredientAliases: Record<string, string[]> = {
+  ...getIngredientRecipeAliases(),
   柚子: ['Yuzu', '柚子'],
   紫苏: ['Shiso', 'Perilla', '紫苏'],
   乌龙茶: ['Oolong Tea', 'Oolong', '乌龙茶'],
@@ -118,9 +120,18 @@ function getStructure(direction: string) {
   return Object.keys(structureTemplates).find((structure) => direction.includes(structure)) ?? 'Highball';
 }
 
+function profileMatches(profile: { ingredient: string; aliases: string[] }, terms: string[]) {
+  return [profile.ingredient, ...profile.aliases].some((item) => itemMatches(item, terms));
+}
+
 function IngredientRecipeFinder() {
   const [query, setQuery] = useState('紫苏');
   const searchTerms = useMemo(() => expandQuery(query), [query]);
+
+  const practicalProfile = useMemo(
+    () => ingredientRecipeProfiles.find((profile) => profileMatches(profile, searchTerms)),
+    [searchTerms],
+  );
 
   const matchedIngredient = useMemo(() => {
     const cleanedQuery = query.trim();
@@ -144,15 +155,21 @@ function IngredientRecipeFinder() {
     [searchTerms],
   );
 
+  const fullRecipeMatches = useMemo(
+    () => [...(practicalProfile?.recipes ?? []), ...matchedCocktails],
+    [matchedCocktails, practicalProfile],
+  );
+
   const directions = useMemo(() => {
+    const practicalDirections = practicalProfile?.recipes.map((recipe) => recipe.name) ?? [];
     const worldDirections = matchedIngredient.world?.cocktailDirections ?? [];
     const atlasDirections = matchedIngredient.atlas?.cocktailIdeas ?? [];
-    return Array.from(new Set([...worldDirections, ...atlasDirections])).slice(0, 8);
-  }, [matchedIngredient]);
+    return Array.from(new Set([...practicalDirections, ...worldDirections, ...atlasDirections])).slice(0, 10);
+  }, [matchedIngredient, practicalProfile]);
 
-  const spirits = matchedIngredient.atlas?.spirits ?? matchedIngredient.world?.suitableSpirits ?? [];
-  const techniques = matchedIngredient.atlas?.techniques ?? matchedIngredient.world?.techniques ?? [];
-  const pairings = matchedIngredient.atlas?.pairings ?? matchedIngredient.world?.relatedIngredients.pairings ?? [];
+  const spirits = practicalProfile?.bestSpirits ?? matchedIngredient.atlas?.spirits ?? matchedIngredient.world?.suitableSpirits ?? [];
+  const techniques = practicalProfile?.techniques ?? matchedIngredient.atlas?.techniques ?? matchedIngredient.world?.techniques ?? [];
+  const pairings = practicalProfile?.pairings ?? matchedIngredient.atlas?.pairings ?? matchedIngredient.world?.relatedIngredients.pairings ?? [];
 
   return (
     <section className="mt-10 max-w-6xl border-y border-white/10 py-8">
@@ -168,7 +185,7 @@ function IngredientRecipeFinder() {
             适合吧台研发和服务前快速判断：先看完整配方，再看可执行的研发方向。
           </p>
           <div className="mt-6 flex flex-wrap gap-2">
-            {['紫苏', '柚子', '咖啡', '椰子', '青柠', '蜂蜜'].map((item) => (
+            {['紫苏', '柚子', '斑斓', '罗望子', '咖啡', '可可', '百香果', '苹果'].map((item) => (
               <button
                 key={item}
                 onClick={() => setQuery(item)}
@@ -216,14 +233,14 @@ function IngredientRecipeFinder() {
             Full recipe matches / 完整配方匹配
           </div>
           <div className="mt-4 grid gap-3">
-            {matchedCocktails.length ? (
-              matchedCocktails.slice(0, 4).map((cocktail) => (
+            {fullRecipeMatches.length ? (
+              fullRecipeMatches.slice(0, 6).map((cocktail) => (
                 <article key={cocktail.id} className="border border-white/10 bg-white/[0.025] p-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
                       <h3 className="text-2xl font-semibold">{cocktail.name}</h3>
                       <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/38">
-                        {cocktail.category} / {cocktail.method}
+                        {'category' in cocktail ? cocktail.category : (cocktail as PracticalRecipe).confidence} / {cocktail.method}
                       </p>
                     </div>
                     <div className="text-sm text-white/48">{cocktail.flavorTags.join(' / ')}</div>
