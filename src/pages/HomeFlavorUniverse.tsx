@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import FlavorUniverseCanvas from '../components/FlavorUniverseCanvas';
+import IngredientRecipeFinder from '../components/IngredientRecipeFinder';
 import NodeDetailPanel from '../components/NodeDetailPanel';
 import { atlasStats } from '../data/flavorAtlas';
 import { getKnowledgeNode } from '../data/knowledgeGraph';
@@ -53,7 +54,14 @@ function HomeFlavorUniverse() {
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.44, duration: 0.8 }}
+            transition={{ delay: 0.38, duration: 0.8 }}
+          >
+            <IngredientRecipeFinder />
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.8 }}
             className="mt-10 grid max-w-4xl grid-cols-2 gap-3 border-y border-white/10 py-5 sm:grid-cols-3 lg:grid-cols-6"
           >
             {[
