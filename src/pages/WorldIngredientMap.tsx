@@ -106,16 +106,16 @@ function WorldIngredientMap() {
   const activeIngredient = getIngredientDetail(activeIngredientName);
   const atlasIngredient = getAtlasIngredientByName(activeIngredient.englishName) ?? getAtlasIngredientByName(activeIngredient.name);
   const encyclopediaEntry = getIngredientEntryByName(atlasIngredient?.name ?? activeIngredient.englishName) ?? getIngredientEntryByName(activeIngredient.name);
-  const activeRegionIngredients = useMemo(
+  const atlasSupplementIngredients = useMemo(
     () =>
       atlasIngredients
         .filter((ingredient) => ingredient.regions.includes(activeRegion.englishName))
-        .slice(0, 40),
-    [activeRegion.englishName],
+        .map((ingredient) => ingredient.name)
+        .filter((ingredient) => !activeRegion.ingredients.includes(ingredient))
+        .slice(0, 10),
+    [activeRegion.englishName, activeRegion.ingredients],
   );
-  const visibleRegionIngredients = activeRegionIngredients.length
-    ? activeRegionIngredients.map((ingredient) => ingredient.name)
-    : activeRegion.ingredients;
+  const visibleRegionIngredients = activeRegion.ingredients;
 
   const relatedRegions = useMemo(
     () => activeRegion.linkedRegionIds.map(getRegion),
@@ -165,11 +165,11 @@ function WorldIngredientMap() {
             World Ingredient Map / 世界食材地图
           </p>
           <h2 className="mt-6 max-w-4xl text-5xl font-semibold leading-none sm:text-7xl">
-            A world map for cocktail ingredients.
+            Place first. Ingredient second. Cocktail direction third.
           </h2>
           <p className="mt-6 max-w-2xl text-lg leading-8 text-muted">
-            从世界不同地区的食材、香料、酒类与风味结构中寻找鸡尾酒灵感。选择地区，
-            再从食材、风味、当地饮品和跨地域关联继续探索。
+            先选择一个地区，再阅读当地代表食材、风味语法和可执行的鸡尾酒方向。
+            地区食材以人工策展为主，数据库关联作为延伸探索。
           </p>
 
           <div className="mt-10 grid gap-3">
@@ -225,7 +225,7 @@ function WorldIngredientMap() {
               <div className="mt-8 grid gap-8 xl:grid-cols-2">
                 <div>
                   <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
-                    Signature Ingredients / 代表食材
+                    Curated regional shelf / 人工策展代表食材
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {visibleRegionIngredients.map((ingredient) => (
@@ -286,6 +286,27 @@ function WorldIngredientMap() {
                       key={ingredient}
                       onClick={() => setActiveIngredientName(ingredient)}
                       className="border border-white/10 bg-black/30 px-3 py-2 text-sm text-white/65 transition hover:border-electric/60"
+                    >
+                      {ingredient}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mt-8">
+                <div className="font-mono text-xs uppercase tracking-[0.2em] text-electric">
+                  Database extensions / 数据库延伸
+                </div>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-white/45">
+                  These are generated atlas links, useful for exploration but secondary to the curated regional shelf.
+                  / 以下来自 Atlas 关联，适合继续探索，但优先级低于人工策展食材。
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {atlasSupplementIngredients.map((ingredient) => (
+                    <button
+                      key={ingredient}
+                      onClick={() => setActiveIngredientName(ingredient)}
+                      className="border border-white/10 bg-black/20 px-3 py-2 text-sm text-white/45 transition hover:border-electric/60 hover:text-white/70"
                     >
                       {ingredient}
                     </button>

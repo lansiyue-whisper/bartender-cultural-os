@@ -144,6 +144,48 @@ function PullQuote({ text }: { text: string }) {
   );
 }
 
+function MakeWithThis({ entry }: { entry: EncyclopediaEntry }) {
+  const statusLabels = ['Service-ready / 可直接研发', 'Modern riff / 现代变奏', 'Experimental / 实验方向'];
+  const structures = entry.pairings.bestCocktailStructures.slice(0, 3);
+
+  return (
+    <section className="border-y border-white/10 py-10">
+      <div className="grid gap-8 xl:grid-cols-[13rem_1fr]">
+        <div>
+          <Kicker>Make With This / 可以这样做</Kicker>
+          <p className="mt-4 text-sm leading-6 text-white/45">
+            The fastest bridge from flavor reading to bar development. / 从风味阅读进入吧台研发的最快路径。
+          </p>
+        </div>
+        <div className="grid gap-4 lg:grid-cols-3">
+          {structures.map((structure, index) => {
+            const { english, chinese } = splitBilingual(structure);
+            return (
+              <article key={structure} className="border border-white/10 bg-white/[0.025] p-5">
+                <div className="font-mono text-[10px] uppercase tracking-[0.24em] text-electric">
+                  {statusLabels[index]}
+                </div>
+                <h4 className="mt-5 text-3xl font-semibold leading-none">
+                  {entry.hero.name} {english}
+                </h4>
+                {chinese ? <p className="mt-2 text-sm text-white/42">{entry.hero.name} {chinese}</p> : null}
+                <p className="mt-5 text-sm leading-7 text-white/58">
+                  Pair with {entry.pairings.bestSpirits[index] ?? entry.pairings.bestSpirits[0]} and stabilize through{' '}
+                  {entry.pairings.bestTechniques[index] ?? entry.pairings.bestTechniques[0]}.
+                  <span className="mt-2 block text-white/42">
+                    搭配 {entry.pairings.bestSpirits[index] ?? entry.pairings.bestSpirits[0]}，并用{' '}
+                    {entry.pairings.bestTechniques[index] ?? entry.pairings.bestTechniques[0]} 稳定表达。
+                  </span>
+                </p>
+              </article>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function EncyclopediaEntryLayout({ entry }: { entry: EncyclopediaEntry }) {
   const leadTags = [entry.hero.category, entry.type, ...entry.pairings.bestFlavorFamilies.slice(0, 3)];
   const story = [entry.overview.what, entry.overview.importance, entry.overview.bartenderUse];
@@ -168,9 +210,18 @@ function EncyclopediaEntryLayout({ entry }: { entry: EncyclopediaEntry }) {
         <div className="mt-8">
           <TagCloud items={leadTags} quiet />
         </div>
+        <div className="mt-8 flex flex-wrap gap-2">
+          {['Curated reading layer / 策展阅读层', 'Generated atlas support / 数据库辅助', 'Requires bar testing / 需要吧台试饮'].map((item) => (
+            <span key={item} className="border border-white/10 px-3 py-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/38">
+              {item}
+            </span>
+          ))}
+        </div>
       </header>
 
       <EntryImage entry={entry} />
+
+      <MakeWithThis entry={entry} />
 
       <EditorialSection number="01" title="Story" subtitle="What it does in a glass / 它在杯中负责什么">
         <div className="space-y-10">

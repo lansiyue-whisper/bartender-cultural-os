@@ -11,15 +11,12 @@ import TechniqueLibrary from './pages/TechniqueLibrary';
 import WorldIngredientMap, { FieldNotesPreview, InspirationArchive } from './pages/WorldIngredientMap';
 
 const sections = [
-  ['01', 'World Ingredient Map', '世界食材地图', '从地区、食材与地域风味进入。'],
-  ['02', 'Spirits Library', '烈酒图书馆', '从 Gin、Rum、Whisky、Tequila 等烈酒出发。'],
-  ['03', 'Technique Library', '调酒技法图书馆', '从 Cordial、Shrub、Milk Punch 等技法进入。'],
-  ['04', 'Explore Graph', '风味知识网络', '把食材、烈酒、技法、风味连接成图谱。'],
-  ['05', 'Explore by Flavor', '从风味开始探索', '从酸感、草本、烟熏、发酵等方向进入。'],
-  ['06', 'Ingredient Atlas', '食材图鉴', '查看植物、果实、香料与技法关系。'],
-  ['07', 'Cocktail Genome', '鸡尾酒基因图谱', '理解经典酒谱的结构演变。'],
-  ['08', 'Inspiration Archive', '灵感档案', '连接音乐、旅行、自然与酒谱方向。'],
-  ['09', 'Recipe Archive', '配方资料库', '保留旧配方库作为查询入口。'],
+  ['01', 'Place', '地域', '先从一个地区进入，理解当地食材和风味语法。'],
+  ['02', 'Ingredient', '食材', '选择一个代表食材，阅读它在杯中的结构角色。'],
+  ['03', 'Direction', '酒型方向', '把食材转成 Highball、Sour、Spritz 或 Martini 的研发方向。'],
+  ['04', 'Spirits', '烈酒', '用基酒反向寻找适合连接的食材与风味。'],
+  ['05', 'Techniques', '技法', '用 Cordial、Shrub、Infusion 等方式稳定表达食材。'],
+  ['06', 'Graph', '知识网络', '查看食材、烈酒、技法、地区与鸡尾酒方向的关系。'],
 ];
 
 function App() {
@@ -33,7 +30,7 @@ function App() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.7 }}
-          className="grid gap-4 border-y border-white/10 py-8 md:grid-cols-3 xl:grid-cols-9"
+          className="grid gap-4 border-y border-white/10 py-8 md:grid-cols-3 xl:grid-cols-6"
         >
           {sections.map(([number, label, cn, description]) => (
             <div key={number} className="min-h-24 border-white/10 md:border-r md:pr-4">
