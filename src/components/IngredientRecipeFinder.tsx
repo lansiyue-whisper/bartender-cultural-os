@@ -224,6 +224,32 @@ function IngredientRecipeFinder() {
               <p className="mt-3 text-sm leading-6 text-white/68">{pairings.slice(0, 5).join(' / ') || '输入食材后显示'}</p>
             </div>
           </div>
+
+          {practicalProfile ? (
+            <div className="mt-4 border border-electric/25 bg-electric/[0.045] p-4">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric">
+                Bartender first test / 调酒师首轮测试
+              </div>
+              <p className="mt-3 text-sm leading-6 text-white/68">{practicalProfile.firstTestRatio}</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/36">
+                    Preparations / 处理方式
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-white/58">{practicalProfile.preparations.join(' / ')}</p>
+                </div>
+                <div>
+                  <div className="font-mono text-[10px] uppercase tracking-[0.18em] text-white/36">
+                    Avoid / 避免搭配
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-white/58">{practicalProfile.avoidPairings.join(' / ')}</p>
+                </div>
+              </div>
+              <p className="mt-4 border-l border-electric/50 pl-3 text-sm leading-6 text-white/52">
+                {practicalProfile.bartenderNote}
+              </p>
+            </div>
+          ) : null}
         </div>
       </div>
 

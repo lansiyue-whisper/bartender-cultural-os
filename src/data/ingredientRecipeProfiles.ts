@@ -18,6 +18,10 @@ export type IngredientRecipeProfile = {
   bestSpirits: string[];
   techniques: string[];
   pairings: string[];
+  preparations: string[];
+  firstTestRatio: string;
+  avoidPairings: string[];
+  bartenderNote: string;
   recipes: PracticalRecipe[];
 };
 
@@ -33,6 +37,7 @@ type ProfileSeed = {
   garnish: string;
   pairings: string[];
   tags: string[];
+  avoidPairings?: string[];
 };
 
 function slug(value: string) {
@@ -50,6 +55,10 @@ function buildProfile(seed: ProfileSeed): IngredientRecipeProfile {
     bestSpirits: [seed.primarySpirit, seed.secondarySpirit, 'Gin', 'Vodka'].filter((item, index, arr) => arr.indexOf(item) === index),
     techniques: ['Cordial', 'Syrup', 'Infusion', 'Carbonation'],
     pairings: seed.pairings,
+    preparations: [seed.cordial, seed.syrup, `${seed.ingredient} Infusion`, `${seed.ingredient} Salt / Acid Adjust`],
+    firstTestRatio: `${seed.primarySpirit} 45 ml + ${seed.cordial} 15 ml + ${seed.bubbles} 90 ml`,
+    avoidPairings: seed.avoidPairings ?? ['过量糖浆 / Too much syrup', '重奶油 / Heavy cream', '低酸度长饮 / Flat low-acid builds'],
+    bartenderNote: `${seed.ingredient} works best when treated as a ${seed.tags.join(' / ')} accent: test it first in a Highball for aroma, then in a Sour for balance.`,
     recipes: [
       {
         id: `${slug(seed.ingredient)}-highball`,
@@ -192,6 +201,46 @@ const seeds: ProfileSeed[] = [
   { ingredient: '蜂蜜', aliases: ['Honey'], cordial: '蜂蜜 Cordial', syrup: '蜂蜜糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Gin', bubbles: '苏打水', garnish: '柠檬皮', pairings: ['姜', '柠檬', '薰衣草'], tags: ['甜感', '花香'] },
   { ingredient: '棕榈糖', aliases: ['Palm Sugar'], cordial: '棕榈糖 Cordial', syrup: '棕榈糖浆', acid: '青柠汁', primarySpirit: 'Rum', secondarySpirit: 'Arrack', bubbles: '椰子水苏打', garnish: '青柠皮', pairings: ['斑斓', '椰子', '咖啡'], tags: ['焦糖', '热带'] },
   { ingredient: '糖蜜', aliases: ['Molasses'], cordial: '糖蜜 Cordial', syrup: '糖蜜糖浆', acid: '青柠汁', primarySpirit: 'Rum', secondarySpirit: 'Whisky', bubbles: '姜汁啤酒', garnish: '橙皮', pairings: ['多香果', '咖啡', '香蕉'], tags: ['焦糖', '浓郁'] },
+  { ingredient: '佛手柑', aliases: ['Bergamot'], cordial: '佛手柑 Cordial', syrup: '佛手柑糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Vodka', bubbles: '汤力水', garnish: '佛手柑皮', pairings: ['伯爵茶', '蜂蜜', '玫瑰水'], tags: ['柑橘', '花香'], avoidPairings: ['泥煤威士忌', '厚重奶油', '过量苦精'] },
+  { ingredient: '四季橘', aliases: ['Calamansi'], cordial: '四季橘 Cordial', syrup: '四季橘糖浆', acid: '四季橘汁', primarySpirit: 'Rum', secondarySpirit: 'Tequila', bubbles: '苏打水', garnish: '四季橘皮', pairings: ['椰子', '香茅', '蜂蜜'], tags: ['柑橘', '酸感'] },
+  { ingredient: '金桔', aliases: ['Kumquat'], cordial: '金桔 Cordial', syrup: '金桔糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Brandy', bubbles: '气泡酒', garnish: '金桔片', pairings: ['桂花', '乌龙茶', '蜂蜜'], tags: ['柑橘', '果皮'] },
+  { ingredient: '血橙', aliases: ['Blood Orange'], cordial: '血橙 Cordial', syrup: '血橙糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Mezcal', bubbles: '气泡酒', garnish: '血橙片', pairings: ['迷迭香', '可可', '石榴'], tags: ['红果', '柑橘'] },
+  { ingredient: '黑莓', aliases: ['Blackberry'], cordial: '黑莓 Cordial', syrup: '黑莓糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Whisky', bubbles: '苏打水', garnish: '黑莓', pairings: ['鼠尾草', '柠檬', '蜂蜜'], tags: ['浆果', '深色果香'] },
+  { ingredient: '黑加仑', aliases: ['Blackcurrant'], cordial: '黑加仑 Cordial', syrup: '黑加仑糖浆', acid: '柠檬汁', primarySpirit: 'Vodka', secondarySpirit: 'Gin', bubbles: '气泡酒', garnish: '黑加仑', pairings: ['越橘', '玫瑰水', '黑麦'], tags: ['浆果', '酸感'] },
+  { ingredient: '红醋栗', aliases: ['Redcurrant'], cordial: '红醋栗 Cordial', syrup: '红醋栗糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Brandy', bubbles: '苏打水', garnish: '红醋栗', pairings: ['接骨木花', '柠檬', '蜂蜜'], tags: ['浆果', '明亮'] },
+  { ingredient: '杏子', aliases: ['Apricot'], cordial: '杏子 Cordial', syrup: '杏子糖浆', acid: '柠檬汁', primarySpirit: 'Brandy', secondarySpirit: 'Gin', bubbles: '气泡酒', garnish: '杏干', pairings: ['橙花水', '杏仁', '蜂蜜'], tags: ['果核', '花香'] },
+  { ingredient: '油桃', aliases: ['Nectarine'], cordial: '油桃 Cordial', syrup: '油桃糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Pisco', bubbles: '苏打水', garnish: '油桃片', pairings: ['茉莉花茶', '蜂蜜', '百里香'], tags: ['果香', '清甜'] },
+  { ingredient: '枇杷', aliases: ['Loquat'], cordial: '枇杷 Cordial', syrup: '枇杷糖浆', acid: '柠檬汁', primarySpirit: 'Sake', secondarySpirit: 'Gin', bubbles: '苏打水', garnish: '枇杷片', pairings: ['乌龙茶', '桂花', '蜂蜜'], tags: ['果香', '柔和'] },
+  { ingredient: '木瓜', aliases: ['Papaya'], cordial: '木瓜 Cordial', syrup: '木瓜糖浆', acid: '青柠汁', primarySpirit: 'Rum', secondarySpirit: 'Pisco', bubbles: '椰子水苏打', garnish: '木瓜片', pairings: ['青柠', '香草', '椰子'], tags: ['热带', '柔滑'] },
+  { ingredient: '龙眼', aliases: ['Longan'], cordial: '龙眼 Cordial', syrup: '龙眼糖浆', acid: '柠檬汁', primarySpirit: 'Baijiu', secondarySpirit: 'Vodka', bubbles: '气泡酒', garnish: '龙眼干', pairings: ['桂花', '乌龙茶', '蜂蜜'], tags: ['花香', '蜜感'] },
+  { ingredient: '火龙果', aliases: ['Dragon Fruit'], cordial: '火龙果 Cordial', syrup: '火龙果糖浆', acid: '青柠汁', primarySpirit: 'Vodka', secondarySpirit: 'Rum', bubbles: '苏打水', garnish: '火龙果片', pairings: ['百香果', '青柠', '椰子'], tags: ['热带', '清爽'] },
+  { ingredient: '菠萝蜜', aliases: ['Jackfruit'], cordial: '菠萝蜜 Cordial', syrup: '菠萝蜜糖浆', acid: '青柠汁', primarySpirit: 'Rum', secondarySpirit: 'Arrack', bubbles: '椰子水苏打', garnish: '菠萝蜜干', pairings: ['斑斓', '椰子', '青柠'], tags: ['热带', '熟果'] },
+  { ingredient: '龙蒿', aliases: ['Tarragon'], cordial: '龙蒿 Cordial', syrup: '龙蒿糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Vodka', bubbles: '苏打水', garnish: '龙蒿叶', pairings: ['葡萄柚', '黄瓜', '白桃'], tags: ['草本', '茴香感'], avoidPairings: ['强烟熏', '重咖啡', '厚重糖蜜'] },
+  { ingredient: '香菜', aliases: ['Cilantro'], cordial: '香菜 Cordial', syrup: '香菜糖浆', acid: '青柠汁', primarySpirit: 'Tequila', secondarySpirit: 'Gin', bubbles: '葡萄柚苏打', garnish: '香菜叶', pairings: ['青柠', '辣椒', '黄瓜'], tags: ['草本', '青感'] },
+  { ingredient: '柠檬香蜂草', aliases: ['Lemon Balm'], cordial: '柠檬香蜂草 Cordial', syrup: '柠檬香蜂草糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Vodka', bubbles: '苏打水', garnish: '香蜂草叶', pairings: ['柠檬', '蜂蜜', '黄瓜'], tags: ['草本', '柑橘'] },
+  { ingredient: '咖喱叶', aliases: ['Curry Leaf'], cordial: '咖喱叶 Cordial', syrup: '咖喱叶糖浆', acid: '青柠汁', primarySpirit: 'Gin', secondarySpirit: 'Rum', bubbles: '苏打水', garnish: '咖喱叶', pairings: ['椰子', '罗望子', '姜'], tags: ['草本', '香料'], avoidPairings: ['玫瑰水', '过量奶油', '轻花香 Spritz'] },
+  { ingredient: '柠檬叶', aliases: ['Makrut Lime Leaf', 'Kaffir Lime Leaf'], cordial: '柠檬叶 Cordial', syrup: '柠檬叶糖浆', acid: '青柠汁', primarySpirit: 'Gin', secondarySpirit: 'Rum', bubbles: '苏打水', garnish: '柠檬叶', pairings: ['香茅', '椰子', '青柠'], tags: ['柑橘', '草本'] },
+  { ingredient: '无花果叶', aliases: ['Fig Leaf'], cordial: '无花果叶 Cordial', syrup: '无花果叶糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Brandy', bubbles: '苏打水', garnish: '无花果叶香气', pairings: ['无花果', '椰子', '蜂蜜'], tags: ['绿叶', '椰香'] },
+  { ingredient: '玄米茶', aliases: ['Genmaicha'], cordial: '玄米茶 Cordial', syrup: '玄米茶糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Sake', bubbles: '苏打水', garnish: '柠檬皮', pairings: ['黑芝麻', '蜂蜜', '白桃'], tags: ['茶感', '谷物'] },
+  { ingredient: '伯爵茶', aliases: ['Earl Grey'], cordial: '伯爵茶 Cordial', syrup: '伯爵茶糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Vodka', bubbles: '汤力水', garnish: '柠檬皮', pairings: ['佛手柑', '薰衣草', '蜂蜜'], tags: ['茶感', '柑橘'] },
+  { ingredient: '普洱茶', aliases: ['Pu-erh', 'Puerh'], cordial: '普洱茶 Cordial', syrup: '普洱茶糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Rum', bubbles: '苏打水', garnish: '橙皮', pairings: ['可可', '糖蜜', '黑芝麻'], tags: ['茶感', '泥土'] },
+  { ingredient: '正山小种', aliases: ['Lapsang Souchong'], cordial: '正山小种 Cordial', syrup: '正山小种糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Mezcal', bubbles: '苏打水', garnish: '橙皮', pairings: ['蜂蜜', '苹果', '可可'], tags: ['烟熏', '茶感'] },
+  { ingredient: '冷萃咖啡', aliases: ['Cold Brew Coffee'], cordial: '冷萃咖啡 Cordial', syrup: '冷萃咖啡糖浆', acid: '柠檬汁', primarySpirit: 'Rum', secondarySpirit: 'Vodka', bubbles: '苏打水', garnish: '咖啡豆', pairings: ['橙子', '可可', '糖蜜'], tags: ['咖啡', '清爽'] },
+  { ingredient: '可可碎', aliases: ['Cacao Nib'], cordial: '可可碎 Cordial', syrup: '可可碎糖浆', acid: '青柠汁', primarySpirit: 'Rum', secondarySpirit: 'Whisky', bubbles: '苏打水', garnish: '可可碎', pairings: ['咖啡', '樱桃', '香草'], tags: ['可可', '烘焙'] },
+  { ingredient: '白巧克力', aliases: ['White Chocolate'], cordial: '白巧克力 Cordial', syrup: '白巧克力糖浆', acid: '柠檬汁', primarySpirit: 'Brandy', secondarySpirit: 'Rum', bubbles: '苏打水', garnish: '白巧克力碎', pairings: ['草莓', '玫瑰水', '开心果'], tags: ['奶香', '甜感'], avoidPairings: ['强酸 Highball', '海盐过量', '烟熏木'] },
+  { ingredient: '山核桃', aliases: ['Pecan'], cordial: '山核桃 Orgeat', syrup: '山核桃糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Rum', bubbles: '苏打水', garnish: '山核桃碎', pairings: ['枫糖', '苹果', '咖啡'], tags: ['坚果', '木质'] },
+  { ingredient: '榛子', aliases: ['Hazelnut'], cordial: '榛子 Orgeat', syrup: '榛子糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Brandy', bubbles: '苏打水', garnish: '榛子碎', pairings: ['可可', '咖啡', '橙子'], tags: ['坚果', '烘焙'] },
+  { ingredient: '芹菜', aliases: ['Celery'], cordial: '芹菜盐味 Cordial', syrup: '芹菜糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Vodka', bubbles: '苏打水', garnish: '芹菜叶', pairings: ['番茄', '海盐', '青柠'], tags: ['清爽', '咸感'] },
+  { ingredient: '茴香头', aliases: ['Fennel Bulb'], cordial: '茴香头 Cordial', syrup: '茴香头糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Aquavit', bubbles: '苏打水', garnish: '茴香叶', pairings: ['葡萄柚', '橄榄', '柠檬'], tags: ['草本', '茴香感'] },
+  { ingredient: '仙人掌', aliases: ['Nopal'], cordial: '仙人掌 Cordial', syrup: '仙人掌糖浆', acid: '青柠汁', primarySpirit: 'Tequila', secondarySpirit: 'Mezcal', bubbles: '苏打水', garnish: '青柠皮', pairings: ['青柠', '辣椒', '海盐'], tags: ['绿色', '矿物'] },
+  { ingredient: '香菇', aliases: ['Shiitake'], cordial: '香菇鲜味 Cordial', syrup: '香菇糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Sake', bubbles: '苏打水', garnish: '脱水香菇', pairings: ['味噌', '昆布', '黑麦'], tags: ['鲜味', '泥土'] },
+  { ingredient: '牛肝菌', aliases: ['Porcini'], cordial: '牛肝菌鲜味 Cordial', syrup: '牛肝菌糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Brandy', bubbles: '苏打水', garnish: '牛肝菌粉', pairings: ['黑麦', '迷迭香', '海盐'], tags: ['蘑菇', '泥土'] },
+  { ingredient: '海苔', aliases: ['Nori'], cordial: '海苔盐味 Cordial', syrup: '海苔糖浆', acid: '柠檬汁', primarySpirit: 'Vodka', secondarySpirit: 'Sake', bubbles: '苏打水', garnish: '海苔片', pairings: ['柚子', '昆布', '海盐'], tags: ['鲜味', '海风'] },
+  { ingredient: '酱油', aliases: ['Soy Sauce'], cordial: '酱油蜂蜜 Cordial', syrup: '酱油糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Vodka', bubbles: '苏打水', garnish: '橙皮', pairings: ['味噌', '黑芝麻', '姜'], tags: ['鲜味', '咸感'], avoidPairings: ['花香 Spritz', '低酸甜饮', '过量盐水'] },
+  { ingredient: '康普茶', aliases: ['Kombucha'], cordial: '康普茶 Cordial', syrup: '康普茶糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Vodka', bubbles: '康普茶', garnish: '柠檬皮', pairings: ['姜', '乌龙茶', '蜂蜜'], tags: ['发酵', '酸感'] },
+  { ingredient: '开菲尔', aliases: ['Kefir'], cordial: '开菲尔乳清 Cordial', syrup: '开菲尔糖浆', acid: '柠檬汁', primarySpirit: 'Gin', secondarySpirit: 'Rum', bubbles: '苏打水', garnish: '柠檬皮', pairings: ['芒果', '蜂蜜', '豆蔻'], tags: ['乳酸', '发酵'] },
+  { ingredient: '米', aliases: ['Rice'], cordial: '米香 Cordial', syrup: '米香糖浆', acid: '柠檬汁', primarySpirit: 'Sake', secondarySpirit: 'Shochu', bubbles: '苏打水', garnish: '米香脆片', pairings: ['米曲', '柚子', '黑芝麻'], tags: ['谷物', '清甜'] },
+  { ingredient: '大麦', aliases: ['Barley'], cordial: '大麦 Cordial', syrup: '大麦糖浆', acid: '柠檬汁', primarySpirit: 'Whisky', secondarySpirit: 'Shochu', bubbles: '苏打水', garnish: '橙皮', pairings: ['蜂蜜', '苹果', '咖啡'], tags: ['谷物', '烘焙'] },
 ];
 
 export const ingredientRecipeProfiles = seeds.map(buildProfile);
