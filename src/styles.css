@@ -73,6 +73,91 @@ select {
   color: rgba(143, 178, 255, 0.72);
 }
 
+.hero-scan {
+  background:
+    linear-gradient(105deg, transparent 0%, rgba(47, 125, 255, 0.08) 42%, transparent 54%),
+    linear-gradient(180deg, transparent, rgba(47, 125, 255, 0.04), transparent);
+  transform: translateX(-120%);
+  animation: hero-scan 9s ease-in-out infinite;
+}
+
+.hero-orbit {
+  animation: orbit-drift 18s ease-in-out infinite alternate;
+}
+
+.hero-orbit::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0.7rem;
+  height: 0.7rem;
+  border-radius: 999px;
+  background: #2f7dff;
+  box-shadow: 0 0 36px rgba(47, 125, 255, 0.75);
+  transform: translate(-50%, -50%);
+}
+
+.ingredient-ticker {
+  animation: ingredient-ticker 30s linear infinite;
+}
+
+.scroll-pulse {
+  transform-origin: top;
+  animation: scroll-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes hero-scan {
+  0%,
+  18% {
+    transform: translateX(-120%);
+    opacity: 0;
+  }
+
+  36% {
+    opacity: 1;
+  }
+
+  58%,
+  100% {
+    transform: translateX(120%);
+    opacity: 0;
+  }
+}
+
+@keyframes orbit-drift {
+  from {
+    transform: rotate(-4deg) translate3d(0, 0, 0);
+  }
+
+  to {
+    transform: rotate(7deg) translate3d(-1rem, 0.8rem, 0);
+  }
+}
+
+@keyframes ingredient-ticker {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@keyframes scroll-pulse {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+    opacity: 0.35;
+  }
+
+  50% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+}
+
 .ambient main,
 .ambient .ambient-dim {
   filter: brightness(0.72) saturate(0.8);

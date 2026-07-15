@@ -6,6 +6,10 @@ import { atlasStats } from '../data/flavorAtlas';
 import { getKnowledgeNode } from '../data/knowledgeGraph';
 import { useArchiveStore } from '../store/useArchiveStore';
 
+const orbitLabels = ['Citrus', 'Tea', 'Herbal', 'Smoke', 'Ferment', 'Mineral'];
+const floatingSignals = ['Yuzu Highball', 'Shiso Paloma', 'Pandan Daiquiri', 'Oolong Sour', 'Kombu Martini'];
+const tickerItems = ['柚子 Yuzu', '紫苏 Shiso', '斑斓 Pandan', '罗望子 Tamarind', '乌龙茶 Oolong', '烟熏木 Smoke Wood', '洛神花 Hibiscus', '味噌 Miso'];
+
 function HomeFlavorUniverse() {
   const selectedNodeId = useArchiveStore((state) => state.selectedKnowledgeNodeId);
   const setSelectedNode = useArchiveStore((state) => state.setSelectedKnowledgeNodeId);
@@ -19,6 +23,38 @@ function HomeFlavorUniverse() {
 
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(3,4,5,0.9)_74%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/14" />
+      <div className="hero-scan pointer-events-none absolute inset-0" />
+      <div className="hero-orbit pointer-events-none absolute right-[7vw] top-[20vh] hidden h-[34rem] w-[34rem] xl:block">
+        <div className="absolute inset-0 rounded-full border border-electric/12" />
+        <div className="absolute inset-12 rounded-full border border-white/8" />
+        <div className="absolute inset-24 rounded-full border border-electric/10" />
+        {orbitLabels.map((label, index) => (
+          <span
+            key={label}
+            className="absolute font-mono text-[10px] uppercase tracking-[0.22em] text-white/42"
+            style={{
+              left: `${50 + Math.cos((index / orbitLabels.length) * Math.PI * 2) * 43}%`,
+              top: `${50 + Math.sin((index / orbitLabels.length) * Math.PI * 2) * 43}%`,
+              transform: 'translate(-50%, -50%)',
+            }}
+          >
+            {label}
+          </span>
+        ))}
+      </div>
+      <div className="pointer-events-none absolute right-8 top-28 hidden w-72 xl:block">
+        {floatingSignals.map((signal, index) => (
+          <motion.div
+            key={signal}
+            initial={{ opacity: 0, x: 18 }}
+            animate={{ opacity: [0.2, 0.72, 0.32], x: [18, 0, 8] }}
+            transition={{ duration: 5.5, repeat: Infinity, delay: index * 0.55, ease: 'easeInOut' }}
+            className="mb-3 border border-white/10 bg-black/28 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/48 backdrop-blur-sm"
+          >
+            {signal}
+          </motion.div>
+        ))}
+      </div>
 
       <div className="relative z-10 flex min-h-screen flex-col justify-between px-5 py-6 sm:px-8 lg:px-12">
         <div className="grid gap-4 border-b border-white/12 pb-4 font-mono text-[10px] uppercase tracking-[0.24em] text-white/58 sm:grid-cols-[1fr_auto_1fr]">
@@ -44,6 +80,24 @@ function HomeFlavorUniverse() {
           >
             每一种食材，都带着一个地方。输入一个食材，找到可执行的配方、基酒、技法与替代方向。
           </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.26, duration: 0.8 }}
+            className="mt-8 grid max-w-4xl gap-3 sm:grid-cols-3"
+          >
+            {[
+              ['Input', '一个食材', '得到可执行配方'],
+              ['Connect', '基酒 / 技法', '判断研发路径'],
+              ['Replace', '替代 / 避免', '减少试错成本'],
+            ].map(([title, cn, desc]) => (
+              <div key={title} className="border-t border-white/14 py-4">
+                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-electric/78">{title}</div>
+                <div className="mt-2 text-lg text-white/82">{cn}</div>
+                <div className="mt-1 text-sm text-white/38">{desc}</div>
+              </div>
+            ))}
+          </motion.div>
           <motion.a
             href="#world-map"
             initial={{ opacity: 0, y: 18 }}
@@ -62,6 +116,18 @@ function HomeFlavorUniverse() {
             <IngredientRecipeFinder />
           </motion.div>
         </div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.62, duration: 0.8 }}
+            className="mb-4 overflow-hidden border-y border-white/10 py-3"
+          >
+            <div className="ingredient-ticker flex w-max gap-8 font-mono text-[10px] uppercase tracking-[0.28em] text-white/38">
+              {[...tickerItems, ...tickerItems].map((item, index) => (
+                <span key={`${item}-${index}`}>{item}</span>
+              ))}
+            </div>
+          </motion.div>
           <motion.div
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
@@ -82,6 +148,11 @@ function HomeFlavorUniverse() {
               </div>
             ))}
           </motion.div>
+      </div>
+
+      <div className="pointer-events-none absolute bottom-8 right-8 hidden items-end gap-4 font-mono text-[10px] uppercase tracking-[0.22em] text-white/38 lg:flex">
+        <span>Scroll to enter map</span>
+        <span className="scroll-pulse h-14 w-px bg-electric/70" />
       </div>
 
       <motion.div
