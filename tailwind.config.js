@@ -15,7 +15,7 @@ export default {
         display: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
       boxShadow: {
-        glow: '0 0 32px rgba(47, 125, 255, 0.25)',
+        glow: '0 0 32px rgba(47, 125, 255, 0.22)',
       },
     },
   },

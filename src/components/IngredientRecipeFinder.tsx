@@ -172,10 +172,10 @@ function IngredientRecipeFinder() {
   const pairings = practicalProfile?.pairings ?? matchedIngredient.atlas?.pairings ?? matchedIngredient.world?.relatedIngredients.pairings ?? [];
 
   return (
-    <section className="mt-10 max-w-6xl border-y border-white/10 py-8">
-      <div className="grid gap-8 lg:grid-cols-[0.8fr_1.2fr]">
+    <section className="mt-10 border-y border-white/12 bg-black/28 px-0 py-7 backdrop-blur-md">
+      <div className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr]">
         <div>
-          <div className="font-mono text-xs uppercase tracking-[0.32em] text-electric">
+          <div className="font-mono text-[10px] uppercase tracking-[0.32em] text-electric/80">
             Ingredient to Recipe / 食材找配方
           </div>
           <h2 className="mt-4 text-4xl font-semibold leading-none text-white sm:text-5xl">
@@ -189,7 +189,7 @@ function IngredientRecipeFinder() {
               <button
                 key={item}
                 onClick={() => setQuery(item)}
-                className="border border-white/10 px-3 py-2 text-sm text-white/55 transition hover:border-electric/60 hover:text-white"
+                className="border border-white/10 px-3 py-2 font-mono text-[11px] uppercase tracking-[0.12em] text-white/55 transition hover:border-electric/60 hover:bg-electric/10 hover:text-white"
               >
                 {item}
               </button>
@@ -206,28 +206,28 @@ function IngredientRecipeFinder() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="例如：紫苏 / Yuzu / 咖啡 / Coconut"
-              className="mt-3 w-full border border-electric/40 bg-black/50 px-5 py-4 text-2xl text-white outline-none transition placeholder:text-white/24 focus:border-electric focus:shadow-glow"
+              className="mt-3 w-full border border-electric/35 bg-black/45 px-5 py-4 text-2xl text-white outline-none transition placeholder:text-white/24 focus:border-electric focus:shadow-glow"
             />
           </label>
 
           <div className="mt-6 grid gap-4 md:grid-cols-3">
-            <div className="border border-white/10 bg-black/30 p-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric">Best Spirits / 适合基酒</div>
+            <div className="border-t border-white/18 py-4">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric/78">Best Spirits / 适合基酒</div>
               <p className="mt-3 text-sm leading-6 text-white/68">{spirits.slice(0, 5).join(' / ') || '输入食材后显示'}</p>
             </div>
-            <div className="border border-white/10 bg-black/30 p-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric">Techniques / 适合技法</div>
+            <div className="border-t border-white/18 py-4">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric/78">Techniques / 适合技法</div>
               <p className="mt-3 text-sm leading-6 text-white/68">{techniques.slice(0, 5).join(' / ') || '输入食材后显示'}</p>
             </div>
-            <div className="border border-white/10 bg-black/30 p-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric">Pair With / 可搭配</div>
+            <div className="border-t border-white/18 py-4">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric/78">Pair With / 可搭配</div>
               <p className="mt-3 text-sm leading-6 text-white/68">{pairings.slice(0, 5).join(' / ') || '输入食材后显示'}</p>
             </div>
           </div>
 
           {practicalProfile ? (
             <div className="mt-4 border border-electric/25 bg-electric/[0.045] p-4">
-              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric">
+              <div className="font-mono text-[10px] uppercase tracking-[0.2em] text-electric/80">
                 Bartender first test / 调酒师首轮测试
               </div>
               <p className="mt-3 text-sm leading-6 text-white/68">{practicalProfile.firstTestRatio}</p>
@@ -255,16 +255,16 @@ function IngredientRecipeFinder() {
 
       <div className="mt-8 grid gap-5 xl:grid-cols-[1fr_1fr]">
         <div>
-          <div className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
+          <div className="font-mono text-xs uppercase tracking-[0.24em] text-electric/80">
             Full recipe matches / 完整配方匹配
           </div>
           <div className="mt-4 grid gap-3">
             {fullRecipeMatches.length ? (
               fullRecipeMatches.slice(0, 6).map((cocktail) => (
-                <article key={cocktail.id} className="border border-white/10 bg-white/[0.025] p-5">
+                <article key={cocktail.id} className="border-t border-white/18 py-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
-                      <h3 className="text-2xl font-semibold">{cocktail.name}</h3>
+                      <h3 className="text-2xl font-medium">{cocktail.name}</h3>
                       <p className="mt-2 font-mono text-[10px] uppercase tracking-[0.18em] text-white/38">
                         {'category' in cocktail ? cocktail.category : (cocktail as PracticalRecipe).confidence} / {cocktail.method}
                       </p>
@@ -287,7 +287,7 @@ function IngredientRecipeFinder() {
                 </article>
               ))
             ) : (
-              <div className="border border-white/10 bg-black/30 p-5 text-sm leading-7 text-white/52">
+              <div className="border border-white/18 bg-black/30 p-5 text-sm leading-7 text-white/52">
                 没有找到完整经典配方。下面给出可执行的研发方向。
               </div>
             )}
@@ -295,7 +295,7 @@ function IngredientRecipeFinder() {
         </div>
 
         <div>
-          <div className="font-mono text-xs uppercase tracking-[0.24em] text-electric">
+          <div className="font-mono text-xs uppercase tracking-[0.24em] text-electric/80">
             Development directions / 研发配方方向
           </div>
           <div className="mt-4 grid gap-3">
@@ -303,18 +303,18 @@ function IngredientRecipeFinder() {
               const structure = getStructure(direction);
               const template = structureTemplates[structure];
               return (
-                <article key={direction} className="border border-white/10 bg-black/30 p-5">
+                <article key={direction} className="border-t border-white/18 py-5">
                   <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-white/36">
                     {index === 0 ? 'Best first test / 首轮测试' : 'R&D direction / 研发方向'}
                   </div>
                   <h3 className="mt-3 text-2xl font-semibold">{direction}</h3>
                   <div className="mt-4 grid gap-3 text-sm leading-6">
                     <p className="text-white/62">
-                      <span className="text-electric">Method / 方法：</span>
+                      <span className="text-electric/90">Method / 方法：</span>
                       {template.method}
                     </p>
                     <p className="text-white/62">
-                      <span className="text-electric">Starter ratio / 起始比例：</span>
+                      <span className="text-electric/90">Starter ratio / 起始比例：</span>
                       {template.ratio}
                     </p>
                     <p className="text-white/45">{template.note}</p>

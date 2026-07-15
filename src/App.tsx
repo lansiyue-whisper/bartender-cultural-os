@@ -21,21 +21,21 @@ const sections = [
 
 function App() {
   return (
-    <main className="min-h-screen bg-archive text-ink selection:bg-electric/40 selection:text-white">
+    <main className="min-h-screen bg-archive text-ink selection:bg-white selection:text-black">
       <HomeFlavorUniverse />
 
-      <section className="mx-auto grid max-w-[1500px] gap-16 px-5 py-24 sm:px-8 lg:px-12">
+      <section className="mx-auto grid max-w-[1600px] gap-20 px-5 py-24 sm:px-8 lg:px-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.7 }}
-          className="grid gap-4 border-y border-white/10 py-8 md:grid-cols-3 xl:grid-cols-6"
+          className="editorial-index grid gap-0 border-y border-white/18 md:grid-cols-3 xl:grid-cols-6"
         >
           {sections.map(([number, label, cn, description]) => (
-            <div key={number} className="min-h-24 border-white/10 md:border-r md:pr-4">
-              <div className="font-mono text-xs text-electric">{number}</div>
-              <div className="mt-3 text-sm uppercase tracking-[0.2em] text-white/70">{label}</div>
+            <div key={number} className="min-h-40 border-white/14 py-6 md:border-r md:px-5">
+              <div className="hidden font-mono text-xs text-white/44">{number}</div>
+              <div className="mt-3 text-xl uppercase tracking-[-0.02em] text-ink">{label}</div>
               <div className="mt-2 text-sm text-white/40">{cn}</div>
               <div className="mt-3 text-xs leading-5 text-white/32">{description}</div>
             </div>
@@ -58,13 +58,13 @@ function App() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.25 }}
           transition={{ duration: 0.7 }}
-          className="grid min-h-[70vh] place-items-center border-t border-white/10 py-24 text-center"
+          className="grid min-h-[70vh] place-items-center border-t border-white/18 py-24 text-center"
         >
           <div>
-            <p className="font-mono text-xs uppercase tracking-[0.36em] text-electric">
+            <p className="font-mono text-xs uppercase tracking-[0.36em] text-white/44">
               Preserved Recipe Archive
             </p>
-            <h2 className="mt-6 text-balance text-5xl font-semibold leading-none sm:text-7xl lg:text-8xl">
+            <h2 className="mt-6 text-balance text-5xl font-medium uppercase leading-none tracking-[-0.04em] sm:text-7xl lg:text-8xl">
               231 cocktail records remain available.
             </h2>
             <p className="mx-auto mt-6 max-w-2xl text-lg text-muted">
@@ -72,7 +72,7 @@ function App() {
             </p>
             <a
               href="./archive-recipes.html"
-              className="mt-10 inline-flex border border-electric/60 px-6 py-3 font-mono text-xs uppercase tracking-[0.24em] text-electric shadow-glow transition hover:bg-electric hover:text-white"
+              className="mt-10 inline-flex border border-white/50 px-6 py-3 font-mono text-xs uppercase tracking-[0.24em] text-white transition hover:bg-white hover:text-black"
             >
               Open recipe archive
             </a>
