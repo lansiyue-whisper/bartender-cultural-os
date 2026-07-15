@@ -90,12 +90,39 @@ select {
   position: absolute;
   left: 50%;
   top: 50%;
-  width: 0.7rem;
-  height: 0.7rem;
+  width: 0.5rem;
+  height: 0.5rem;
   border-radius: 999px;
   background: #2f7dff;
-  box-shadow: 0 0 36px rgba(47, 125, 255, 0.75);
+  box-shadow: 0 0 28px rgba(47, 125, 255, 0.75);
   transform: translate(-50%, -50%);
+}
+
+.orbit-sweep {
+  background: conic-gradient(from 0deg, transparent 0deg, rgba(47, 125, 255, 0.34) 18deg, transparent 52deg);
+  mask: radial-gradient(circle, transparent 0 42%, #000 43% 44%, transparent 45% 100%);
+  animation: orbit-sweep 7.5s linear infinite;
+}
+
+.orbit-node {
+  animation: node-pulse 2.8s ease-in-out infinite;
+}
+
+.orbit-node-a {
+  left: 78%;
+  top: 21%;
+}
+
+.orbit-node-b {
+  left: 18%;
+  top: 60%;
+  animation-delay: 0.7s;
+}
+
+.orbit-node-c {
+  left: 58%;
+  top: 83%;
+  animation-delay: 1.2s;
 }
 
 .ingredient-ticker {
@@ -132,6 +159,25 @@ select {
 
   to {
     transform: rotate(7deg) translate3d(-1rem, 0.8rem, 0);
+  }
+}
+
+@keyframes orbit-sweep {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes node-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
   }
 }
 

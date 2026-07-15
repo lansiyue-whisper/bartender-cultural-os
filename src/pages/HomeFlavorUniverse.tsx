@@ -24,17 +24,21 @@ function HomeFlavorUniverse() {
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_center,transparent,rgba(3,4,5,0.9)_74%)]" />
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-white/14" />
       <div className="hero-scan pointer-events-none absolute inset-0" />
-      <div className="hero-orbit pointer-events-none absolute right-[7vw] top-[20vh] hidden h-[34rem] w-[34rem] xl:block">
+      <div className="hero-orbit pointer-events-none absolute right-[8vw] top-[18vh] hidden h-[22rem] w-[22rem] xl:block">
         <div className="absolute inset-0 rounded-full border border-electric/12" />
-        <div className="absolute inset-12 rounded-full border border-white/8" />
-        <div className="absolute inset-24 rounded-full border border-electric/10" />
+        <div className="absolute inset-8 rounded-full border border-white/8" />
+        <div className="absolute inset-16 rounded-full border border-electric/10" />
+        <div className="orbit-sweep absolute inset-0 rounded-full" />
+        <div className="orbit-node orbit-node-a absolute h-2 w-2 rounded-full bg-electric shadow-glow" />
+        <div className="orbit-node orbit-node-b absolute h-1.5 w-1.5 rounded-full bg-white/80" />
+        <div className="orbit-node orbit-node-c absolute h-1.5 w-1.5 rounded-full bg-herb/90" />
         {orbitLabels.map((label, index) => (
           <span
             key={label}
-            className="absolute font-mono text-[10px] uppercase tracking-[0.22em] text-white/42"
+            className="absolute font-mono text-[9px] uppercase tracking-[0.18em] text-white/34"
             style={{
-              left: `${50 + Math.cos((index / orbitLabels.length) * Math.PI * 2) * 43}%`,
-              top: `${50 + Math.sin((index / orbitLabels.length) * Math.PI * 2) * 43}%`,
+              left: `${50 + Math.cos((index / orbitLabels.length) * Math.PI * 2) * 42}%`,
+              top: `${50 + Math.sin((index / orbitLabels.length) * Math.PI * 2) * 42}%`,
               transform: 'translate(-50%, -50%)',
             }}
           >
@@ -42,14 +46,14 @@ function HomeFlavorUniverse() {
           </span>
         ))}
       </div>
-      <div className="pointer-events-none absolute right-8 top-28 hidden w-72 xl:block">
+      <div className="pointer-events-none absolute right-8 top-[30rem] hidden w-64 xl:block">
         {floatingSignals.map((signal, index) => (
           <motion.div
             key={signal}
             initial={{ opacity: 0, x: 18 }}
             animate={{ opacity: [0.2, 0.72, 0.32], x: [18, 0, 8] }}
             transition={{ duration: 5.5, repeat: Infinity, delay: index * 0.55, ease: 'easeInOut' }}
-            className="mb-3 border border-white/10 bg-black/28 px-4 py-3 font-mono text-[10px] uppercase tracking-[0.2em] text-white/48 backdrop-blur-sm"
+            className="mb-2 border border-white/10 bg-black/22 px-3 py-2 font-mono text-[9px] uppercase tracking-[0.18em] text-white/42 backdrop-blur-sm"
           >
             {signal}
           </motion.div>
@@ -76,7 +80,7 @@ function HomeFlavorUniverse() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.8 }}
-            className="mt-8 max-w-3xl border-l border-electric/50 pl-5 text-2xl leading-9 text-white/70 sm:text-4xl sm:leading-tight"
+            className="mt-7 max-w-2xl border-l border-electric/45 pl-4 text-base leading-7 text-white/58 sm:text-xl sm:leading-8"
           >
             每一种食材，都带着一个地方。输入一个食材，找到可执行的配方、基酒、技法与替代方向。
           </motion.p>
@@ -84,17 +88,17 @@ function HomeFlavorUniverse() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.26, duration: 0.8 }}
-            className="mt-8 grid max-w-4xl gap-3 sm:grid-cols-3"
+            className="mt-7 grid max-w-3xl gap-3 sm:grid-cols-3"
           >
             {[
               ['Input', '一个食材', '得到可执行配方'],
               ['Connect', '基酒 / 技法', '判断研发路径'],
               ['Replace', '替代 / 避免', '减少试错成本'],
             ].map(([title, cn, desc]) => (
-              <div key={title} className="border-t border-white/14 py-4">
-                <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-electric/78">{title}</div>
-                <div className="mt-2 text-lg text-white/82">{cn}</div>
-                <div className="mt-1 text-sm text-white/38">{desc}</div>
+              <div key={title} className="border-t border-white/12 py-3">
+                <div className="font-mono text-[9px] uppercase tracking-[0.2em] text-electric/72">{title}</div>
+                <div className="mt-2 text-sm text-white/72">{cn}</div>
+                <div className="mt-1 text-xs leading-5 text-white/34">{desc}</div>
               </div>
             ))}
           </motion.div>
