@@ -16,7 +16,7 @@ function HomeFlavorUniverse() {
   const selectedNode = getKnowledgeNode(selectedNodeId);
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-archive">
+    <section className="relative min-h-screen overflow-hidden">
       <div className="absolute inset-0 opacity-90">
         <FlavorUniverseCanvas />
       </div>

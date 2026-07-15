@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
 import AmbientToggle from './components/AmbientToggle';
+import FloatingMaterialLayer from './components/FloatingMaterialLayer';
 import CocktailGenome from './pages/CocktailGenome';
 import ExploreGraph from './pages/ExploreGraph';
 import FlavorMap from './pages/FlavorMap';
@@ -21,10 +22,12 @@ const sections = [
 
 function App() {
   return (
-    <main className="min-h-screen bg-archive text-ink selection:bg-white selection:text-black">
-      <HomeFlavorUniverse />
+    <main className="relative min-h-screen overflow-hidden bg-archive text-ink selection:bg-white selection:text-black">
+      <FloatingMaterialLayer />
+      <div className="relative z-10">
+        <HomeFlavorUniverse />
 
-      <section className="mx-auto grid max-w-[1600px] gap-20 px-5 py-24 sm:px-8 lg:px-10">
+        <section className="mx-auto grid max-w-[1600px] gap-20 px-5 py-24 sm:px-8 lg:px-10">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -78,7 +81,8 @@ function App() {
             </a>
           </div>
         </motion.section>
-      </section>
+        </section>
+      </div>
 
       <AmbientToggle />
     </main>

@@ -134,6 +134,181 @@ select {
   animation: scroll-pulse 1.8s ease-in-out infinite;
 }
 
+.floating-material-layer {
+  pointer-events: none;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  overflow: hidden;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+}
+
+.material-blob,
+.material-slice,
+.material-leaf,
+.material-thread,
+.material-dust,
+.material-tags {
+  position: absolute;
+  will-change: transform, opacity;
+}
+
+.material-blob {
+  border: 1px solid rgba(47, 125, 255, 0.16);
+  background:
+    radial-gradient(circle at 35% 32%, rgba(66, 183, 169, 0.2), transparent 28%),
+    radial-gradient(circle at 62% 68%, rgba(47, 125, 255, 0.16), transparent 38%),
+    rgba(255, 255, 255, 0.018);
+  filter: blur(0.2px);
+  animation: material-drift 22s ease-in-out infinite alternate;
+}
+
+.material-blob-a {
+  left: 7%;
+  top: 18%;
+  width: 12rem;
+  height: 18rem;
+  border-radius: 58% 42% 62% 38%;
+}
+
+.material-blob-b {
+  right: 8%;
+  top: 48%;
+  width: 16rem;
+  height: 10rem;
+  border-radius: 64% 36% 52% 48%;
+  animation-delay: -6s;
+}
+
+.material-blob-c {
+  left: 54%;
+  bottom: 10%;
+  width: 11rem;
+  height: 11rem;
+  border-radius: 999px;
+  animation-delay: -11s;
+}
+
+.material-slice {
+  width: 5.2rem;
+  height: 5.2rem;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, transparent 0 34%, rgba(47, 125, 255, 0.14) 35% 38%, transparent 39%),
+    conic-gradient(from 20deg, transparent, rgba(255, 255, 255, 0.16), transparent 26%, rgba(47, 125, 255, 0.14), transparent 55%);
+  animation: material-spin 32s linear infinite;
+}
+
+.material-slice-a {
+  right: 18%;
+  top: 16%;
+}
+
+.material-slice-b {
+  left: 12%;
+  bottom: 22%;
+  width: 3.6rem;
+  height: 3.6rem;
+  opacity: 0.58;
+  animation-duration: 42s;
+  animation-direction: reverse;
+}
+
+.material-leaf {
+  width: 4.8rem;
+  height: 1.9rem;
+  border: 1px solid rgba(66, 183, 169, 0.2);
+  border-radius: 100% 0 100% 0;
+  transform-origin: 20% 50%;
+  animation: leaf-float 18s ease-in-out infinite alternate;
+}
+
+.material-leaf::after {
+  content: '';
+  position: absolute;
+  left: 10%;
+  top: 50%;
+  width: 82%;
+  height: 1px;
+  background: rgba(66, 183, 169, 0.18);
+}
+
+.material-leaf-a {
+  right: 28%;
+  bottom: 27%;
+}
+
+.material-leaf-b {
+  left: 28%;
+  top: 12%;
+  opacity: 0.55;
+  animation-delay: -8s;
+}
+
+.material-thread {
+  width: 38vw;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(47, 125, 255, 0.18), transparent);
+  animation: thread-slide 16s ease-in-out infinite alternate;
+}
+
+.material-thread-a {
+  right: -6vw;
+  top: 34%;
+  transform: rotate(-16deg);
+}
+
+.material-thread-b {
+  left: -8vw;
+  bottom: 18%;
+  transform: rotate(13deg);
+  animation-delay: -7s;
+}
+
+.material-dust {
+  width: 0.35rem;
+  height: 0.35rem;
+  border-radius: 999px;
+  background: rgba(47, 125, 255, 0.75);
+  box-shadow: 0 0 24px rgba(47, 125, 255, 0.72);
+  animation: dust-pulse 5s ease-in-out infinite;
+}
+
+.material-dust-a {
+  left: 38%;
+  top: 24%;
+}
+
+.material-dust-b {
+  right: 34%;
+  bottom: 34%;
+  animation-delay: -1.8s;
+}
+
+.material-dust-c {
+  left: 18%;
+  bottom: 12%;
+  animation-delay: -3.1s;
+}
+
+.material-tags {
+  right: 2rem;
+  bottom: 12vh;
+  display: grid;
+  gap: 0.5rem;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  font-size: 0.56rem;
+  letter-spacing: 0.24em;
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.material-tags span {
+  animation: tag-breathe 4.8s ease-in-out infinite;
+  animation-delay: calc(var(--tag-index) * -0.55s);
+}
+
 @keyframes hero-scan {
   0%,
   18% {
@@ -149,6 +324,74 @@ select {
   100% {
     transform: translateX(120%);
     opacity: 0;
+  }
+}
+
+@keyframes material-drift {
+  from {
+    opacity: 0.22;
+    transform: translate3d(0, 0, 0) rotate(-4deg);
+  }
+
+  to {
+    opacity: 0.58;
+    transform: translate3d(1.5rem, -1rem, 0) rotate(8deg);
+  }
+}
+
+@keyframes material-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes leaf-float {
+  from {
+    opacity: 0.22;
+    transform: translate3d(0, 0, 0) rotate(-18deg);
+  }
+
+  to {
+    opacity: 0.66;
+    transform: translate3d(-1rem, 1.2rem, 0) rotate(-5deg);
+  }
+}
+
+@keyframes thread-slide {
+  from {
+    opacity: 0.16;
+    filter: blur(0);
+  }
+
+  to {
+    opacity: 0.48;
+    filter: blur(0.4px);
+  }
+}
+
+@keyframes dust-pulse {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: scale(0.7);
+  }
+
+  50% {
+    opacity: 0.92;
+    transform: scale(1.35);
+  }
+}
+
+@keyframes tag-breathe {
+  0%,
+  100% {
+    opacity: 0.18;
+    transform: translateX(0);
+  }
+
+  50% {
+    opacity: 0.5;
+    transform: translateX(-0.35rem);
   }
 }
 
