@@ -164,7 +164,7 @@ function IngredientRecipeFinder() {
     const practicalDirections = practicalProfile?.recipes.map((recipe) => recipe.name) ?? [];
     const worldDirections = matchedIngredient.world?.cocktailDirections ?? [];
     const atlasDirections = matchedIngredient.atlas?.cocktailIdeas ?? [];
-    return Array.from(new Set([...practicalDirections, ...worldDirections, ...atlasDirections])).slice(0, 10);
+    return Array.from(new Set([...practicalDirections, ...worldDirections, ...atlasDirections])).slice(0, 18);
   }, [matchedIngredient, practicalProfile]);
 
   const spirits = practicalProfile?.bestSpirits ?? matchedIngredient.atlas?.spirits ?? matchedIngredient.world?.suitableSpirits ?? [];
@@ -256,11 +256,11 @@ function IngredientRecipeFinder() {
       <div className="mt-8 grid gap-5 xl:grid-cols-[1fr_1fr]">
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.24em] text-electric/80">
-            Full recipe matches / 完整配方匹配
+            Full recipe matches / 完整配方匹配 · {fullRecipeMatches.length}
           </div>
           <div className="mt-4 grid gap-3">
             {fullRecipeMatches.length ? (
-              fullRecipeMatches.slice(0, 6).map((cocktail) => (
+              fullRecipeMatches.slice(0, 18).map((cocktail) => (
                 <article key={cocktail.id} className="border-t border-white/18 py-5">
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div>
@@ -296,10 +296,10 @@ function IngredientRecipeFinder() {
 
         <div>
           <div className="font-mono text-xs uppercase tracking-[0.24em] text-electric/80">
-            Development directions / 研发配方方向
+            Development directions / 研发配方方向 · {directions.length}
           </div>
           <div className="mt-4 grid gap-3">
-            {directions.slice(0, 5).map((direction, index) => {
+            {directions.slice(0, 18).map((direction, index) => {
               const structure = getStructure(direction);
               const template = structureTemplates[structure];
               return (
